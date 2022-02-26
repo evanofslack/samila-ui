@@ -5,12 +5,14 @@ export default function useGenerator(params: GeneratorParams) {
     const [img, setImg] = useState("");
     const [loading, setLoading] = useState(true);
 
+    // Convert params into a query string (i.e. eq=1&color="red"&bg="blue")
     var queryString = Object.entries(params)
         .filter(([key, value]) => value != null)
         .map(([key, value]) => key + "=" + value)
         .join("&");
 
-    const imageURL = "/api/image?" + queryString;
+    // remove the '#' as our API doesn't accept them
+    const imageURL = ("/api/image?" + queryString).replace(/#/g, "");
 
     async function fetchImage() {
         console.log(imageURL);
@@ -24,7 +26,7 @@ export default function useGenerator(params: GeneratorParams) {
     }
     useEffect(() => {
         fetchImage();
-        // console.log(params);
+        console.log(params);
     }, [params]);
 
     return {

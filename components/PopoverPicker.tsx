@@ -1,10 +1,19 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useRef, useState, useEffect } from "react";
 import { HexColorPicker } from "react-colorful";
 
 import useClickOutside from "../hooks/useClickOutside";
 
-export default function PopoverPicker({ color, onChange, title }) {
-    const popover = useRef();
+type popoverProps = {
+    color: string;
+    onChange: any;
+    title: string;
+};
+
+export default function PopoverPicker({ color, onChange, title }: popoverProps) {
+    useEffect(() => {
+        console.log(color);
+    }, []);
+    const popover = useRef() as React.MutableRefObject<HTMLInputElement>;
     const [isOpen, toggle] = useState(false);
 
     const close = useCallback(() => toggle(false), []);
