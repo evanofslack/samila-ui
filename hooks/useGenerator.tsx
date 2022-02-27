@@ -16,6 +16,7 @@ export default function useGenerator(params: GeneratorParams) {
 
     async function fetchImage() {
         console.log(imageURL);
+        setLoading(true);
         fetch(imageURL)
             .then((resp) => resp.blob())
             .then((imageBlob) => {
