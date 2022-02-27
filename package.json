@@ -13,6 +13,7 @@
     "react": "^17.0.2",
     "react-colorful": "^5.5.1",
     "react-dom": "^17.0.2",
+    "react-spinners": "^0.11.0",
     "swr": "^1.2.2"
   },
   "devDependencies": {
