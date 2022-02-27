@@ -4,11 +4,12 @@ import { GeneratorParams } from "../interfaces";
 import useGenerator from "../hooks/useGenerator";
 import ClipLoader from "react-spinners/ClipLoader";
 import Image from "next/image";
+import Select from "react-select";
 
 export default function Plot() {
     const initialParam: GeneratorParams = {
         eq: 17,
-        proj: null,
+        proj: "rectilinear",
         color: "#000000",
         bg: "#ffffff",
         seed: null,
@@ -17,16 +18,23 @@ export default function Plot() {
     const [params, setParams] = useState<GeneratorParams>(initialParam);
     const [color, setColor] = useState(initialParam.color);
     const [bg, setBg] = useState(initialParam.bg);
+    const [eq, setEq] = useState(initialParam.eq);
+    const [proj, setProj] = useState(initialParam.proj);
     const [active, setActive] = useState("color");
 
     const { img, loading } = useGenerator(params);
 
-    function updateColor() {
+    function regeneratePlot() {
         setParams((prevParams) => ({
             ...prevParams,
             color: color,
             bg: bg,
+            proj: proj,
+            eq: eq,
         }));
+    }
+    function handleSelect(option: any) {
+        setProj(option.value);
     }
 
     return (
@@ -61,13 +69,17 @@ export default function Plot() {
                                 />
                             </div>
                         </div>
-                        <button
-                            className="border font-light border-black p-1 flex items-center justify-center"
-                            onClick={updateColor}
-                        >
-                            {!loading && <p>Generate</p>}
-                            <ClipLoader loading={loading} size={25} speedMultiplier={0.5} />
-                        </button>
+                        <Select
+                            defaultValue={proj}
+                            onChange={handleSelect}
+                            simpleValue={true}
+                            options={[
+                                { value: "rectilinear", label: "rectilinear" },
+                                { value: "polar", label: "polar" },
+                                { value: "hammer", label: "hammer" },
+                            ]}
+                        />
+                        <div>{proj}</div>
                     </div>
                 </div>
 
@@ -78,6 +90,13 @@ export default function Plot() {
                     />
                 </div>
             </div>
+            <button
+                className="border font-light border-black p-1 flex items-center justify-center mt-4 w-24"
+                onClick={regeneratePlot}
+            >
+                {!loading && <p>Generate</p>}
+                <ClipLoader loading={loading} size={25} speedMultiplier={0.5} />
+            </button>
         </div>
     );
 }
