@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
-import Input from "../components/Input";
+import Plot from "../components/Plot";
 
 export default function IndexPage() {
     return (
@@ -12,7 +11,7 @@ export default function IndexPage() {
                         A collection of generative art{" "}
                     </h2> */}
                 </div>
-                <Input />
+                <Plot />
             </div>
             <div className="w-screen h-screen"></div>
         </Layout>

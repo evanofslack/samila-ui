@@ -1,9 +1,10 @@
 import { GeneratorParams } from "../interfaces/index";
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
+import useEffectCallback from "./useEffectCallback";
 
 export default function useGenerator(params: GeneratorParams) {
-    const [img, setImg] = useState("");
-    const [loading, setLoading] = useState(true);
+    const [img, setImg] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
 
     // Convert params into a query string (i.e. eq=1&color="red"&bg="blue")
     var queryString = Object.entries(params)
@@ -14,7 +15,7 @@ export default function useGenerator(params: GeneratorParams) {
     // remove the '#' as our API doesn't accept them
     const imageURL = ("/api/image?" + queryString).replace(/#/g, "");
 
-    async function fetchImage() {
+    const fetchImage = useCallback(() => {
         console.log(imageURL);
         setLoading(true);
         fetch(imageURL)
@@ -24,12 +25,10 @@ export default function useGenerator(params: GeneratorParams) {
                 setImg(imageObjectURL);
                 setLoading(false);
             });
-    }
-    useEffect(() => {
-        fetchImage();
-        console.log(params);
     }, [params]);
 
+    // Only fetch new image when params change and not on first render
+    useEffectCallback(fetchImage);
     return {
         img,
         loading,
