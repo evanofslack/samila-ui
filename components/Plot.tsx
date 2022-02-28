@@ -58,7 +58,9 @@ export default function Plot() {
                                 </p>
                                 <div
                                     className="w-8 h-8 border border-black"
-                                    style={{ backgroundColor: color }}
+                                    style={{
+                                        backgroundColor: color === "string" ? color : "000000",
+                                    }}
                                 />
                             </div>
 
@@ -75,7 +77,7 @@ export default function Plot() {
                                 </p>
                                 <div
                                     className="w-8 h-8 border border-black"
-                                    style={{ backgroundColor: bg }}
+                                    style={{ backgroundColor: bg === "string" ? bg : "ffffff" }}
                                 />
                             </div>
                         </div>
