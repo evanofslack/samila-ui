@@ -81,7 +81,10 @@ export default function Plot() {
                                 />
                             </div>
                         </div>
-                        <SelectProj proj={proj} setProj={setProj} />
+                        <SelectProj
+                            proj={proj === "string" ? proj : "rectilinear"}
+                            setProj={setProj}
+                        />
                         <SelectEq eq={eq} setEq={setEq} />
                     </div>
                 </div>
