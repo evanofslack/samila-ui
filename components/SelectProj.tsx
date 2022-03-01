@@ -1,9 +1,9 @@
 import React from "react";
-import Select from "react-select";
+import { Select } from "@mantine/core";
 
 type ProjProps = {
     proj: string;
-    setProj: React.Dispatch<React.SetStateAction<String>>;
+    setProj: React.Dispatch<React.SetStateAction<string>>;
 };
 
 const opts = [
@@ -13,20 +13,10 @@ const opts = [
 ];
 
 export default function SelectProj({ proj, setProj }: ProjProps) {
-    function handleSelect(option: any) {
-        setProj(option.value);
-    }
-
     return (
         <div className="pt-2">
             <p className="font-light">projection</p>
-            <Select
-                className="font-light"
-                defaultValue={proj}
-                placeholder={proj}
-                onChange={handleSelect}
-                options={opts}
-            />
+            <Select data={opts} defaultValue={proj} />
         </div>
     );
 }

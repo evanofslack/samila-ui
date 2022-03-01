@@ -13,7 +13,7 @@ export default function MobileNav() {
         <div>
             <AiOutlineMenu size="1.8rem" onClick={toggle} className="mr-8" />
             {isOpen && (
-                <div className="fixed top-0 left-0 bg-white w-screen h-screen z-10">
+                <div className="fixed top-0 left-0 bg-gray-100 w-screen h-screen z-10">
                     <nav className="flex flex-row items-center justify-end pt-6 pr-9 w-full">
                         <GrClose size="1.5rem" onClick={toggle} />
                     </nav>
