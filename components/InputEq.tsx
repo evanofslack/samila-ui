@@ -13,7 +13,7 @@ export default function InputEq({ eq, setEq }: EqProps) {
             <NumberInput
                 defaultValue={eq}
                 min={1}
-                max={30}
+                max={20}
                 radius="xs"
                 onChange={(eq: number) => setEq(eq)}
             />
