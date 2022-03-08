@@ -1,6 +1,7 @@
 import React, { ReactNode } from "react";
 import MobileNav from "./MobileNav";
 import Head from "next/head";
+import { FiGithub } from "react-icons/fi";
 
 type Props = {
     children?: ReactNode;
@@ -15,13 +16,15 @@ const Layout = ({ children, title = "This is the default title" }: Props) => (
             <meta name="viewport" content="initial-scale=1.0, width=device-width" />
         </Head>
         <header>
-            <nav className="flex flex-row items-center justify-between pt-5 pl-8 w-full">
-                <h1 className="text-3xl font-semibold ">Samila</h1>
-                <MobileNav />
-            </nav>
+            <MobileNav />
         </header>
         {children}
-        <footer></footer>
+        <footer className=" text-sm font-light flex flex-row justify-between w-screen p-6 pb-4 pt-24">
+            <p> &copy; 2022 Samila </p>
+            <a href="https://github.com/evanofslack/samila-ui">
+                <FiGithub size="1.2rem" />
+            </a>
+        </footer>
     </div>
 );
 

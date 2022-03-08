@@ -1,48 +1,49 @@
 import { AiOutlineMenu } from "react-icons/ai";
 import { useState } from "react";
-import { BiTimeFive } from "react-icons/bi";
-import { BiCheck } from "react-icons/bi";
 import { GrClose } from "react-icons/gr";
-import { FiGithub } from "react-icons/fi";
+import Footer from "./Footer";
+import { useScrollLock } from "@mantine/hooks";
 
 export default function MobileNav() {
     const [isOpen, setIsOpen] = useState(false);
-    const toggle = () => setIsOpen((value) => !value);
+    const [scrollLocked, setScrollLocked] = useScrollLock();
+    const toggle = () => {
+        setIsOpen((value) => !value);
+        setScrollLocked((c) => !c);
+    };
 
     return (
         <div>
-            <AiOutlineMenu size="1.8rem" onClick={toggle} className="mr-8" />
+            <nav className="flex flex-row items-center justify-between py-3 px-8 w-full bg-white  border-b-2 border-gray-100">
+                <h1 className="text-3xl font-semibold">Samila</h1>
+                {!isOpen && <AiOutlineMenu size="1.8rem" onClick={toggle} />}
+                {isOpen && <GrClose size="1.5rem" onClick={toggle} />}
+            </nav>
             {isOpen && (
-                <div className="fixed top-0 left-0 bg-white w-screen h-screen z-10">
-                    <nav className="flex flex-row items-center justify-end pt-6 pr-9 w-full">
-                        <GrClose size="1.5rem" onClick={toggle} />
-                    </nav>
-                    <div className="flex flex-col items-center pt-24 font-light m-12">
-                        <p className="pb-4">
-                            <a
-                                href="https://github.com/sepandhaghighi/samila"
-                                className="underline"
-                            >
-                                Samila
-                            </a>
-                            &nbsp;is a python library that creates generative art.
-                        </p>
-                        <p className="pb-4">
-                            Applying mathematical equations to thousands of psuedo-random points,
-                            Samila creates unique geometric patterns.
-                        </p>
-                        <p className="pb-4">
-                            Each generation has an associated seed that can be used for
-                            identification and replication.
-                        </p>
+                <div className="bg-gray-50 w-screen h-screen z-10 mt-1">
+                    <nav className="flex flex-row items-center justify-between pt-5 pr-9 pl-8 w-full"></nav>
+                    <div className="w-full flex items-center justify-center pt-12 ">
+                        <div className="flex flex-col items-start p-4 lg:p-12 font-light m-12 max-w-xl bg-white shadow-sm">
+                            <p className="pb-4">
+                                <a
+                                    href="https://github.com/sepandhaghighi/samila"
+                                    className="underline"
+                                >
+                                    Samila
+                                </a>
+                                &nbsp;is a python library for creating generative art.
+                            </p>
+                            <p className="pb-4">
+                                Applying mathematical equations to thousands of psuedo-random
+                                points, Samila creates unique geometric patterns.
+                            </p>
+                            <p className="pb-4">
+                                Each generation has an associated seed that can be used for
+                                identification and replication.
+                            </p>
+                        </div>
                     </div>
-
-                    <div className="text-sm font-light fixed bottom-0 left-0 flex flex-row items-center justify-between w-screen p-10">
-                        <p> &copy; 2022 Samila </p>
-                        <a href="https://github.com/evanofslack/samila-ui">
-                            <FiGithub size="1.2rem" />
-                        </a>
-                    </div>
+                    <Footer />
                 </div>
             )}
         </div>

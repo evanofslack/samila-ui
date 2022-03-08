@@ -7,6 +7,8 @@
     "type-check": "tsc"
   },
   "dependencies": {
+    "@mantine/core": "^3.6.11",
+    "@mantine/hooks": "^3.6.11",
     "autoprefixer": "^10.4.2",
     "next": "latest",
     "postcss": "^8.4.6",
