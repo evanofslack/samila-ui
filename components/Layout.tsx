@@ -1,7 +1,6 @@
 import React, { ReactNode } from "react";
 import MobileNav from "./MobileNav";
 import Head from "next/head";
-import Footer from "../components/Footer";
 import { FiGithub } from "react-icons/fi";
 
 type Props = {
@@ -20,7 +19,7 @@ const Layout = ({ children, title = "This is the default title" }: Props) => (
             <MobileNav />
         </header>
         {children}
-        <footer className=" text-sm font-light flex flex-row justify-between w-screen p-6 pb-4 pt-10">
+        <footer className=" text-sm font-light flex flex-row justify-between w-screen p-6 pb-4 pt-24">
             <p> &copy; 2022 Samila </p>
             <a href="https://github.com/evanofslack/samila-ui">
                 <FiGithub size="1.2rem" />
