@@ -7,6 +7,8 @@ import ColorInput from "./ColorInput";
 import SelectProj from "./SelectProj";
 import InputEq from "./InputEq";
 import { Button, Slider } from "@mantine/core";
+import LineweightSlider from "./LineweightSlider";
+import OpacitySlider from "./OpacitySlider";
 
 export default function Plot() {
     const initialParam: GeneratorParams = {
@@ -87,26 +89,8 @@ export default function Plot() {
                     </div>
                 </div>
                 <div className="flex flex-col items-start w-5/6 pt-2 px-4">
-                    <div className="font-light w-full">
-                        <p>Opacity</p>
-                        <Slider
-                            defaultValue={10}
-                            value={opacity}
-                            onChange={setOpacity}
-                            label={(value) => (value / 100).toFixed(2)}
-                            radius={0}
-                        />
-                    </div>
-                    <div className="w-full pt-2 font-light">
-                        <p>Lineweight</p>
-                        <Slider
-                            defaultValue={10}
-                            value={lineweight}
-                            onChange={setLineweight}
-                            label={(value) => (value / 100).toFixed(2)}
-                            radius={0}
-                        />
-                    </div>
+                    {/* <LineweightSlider lineweight={lineweight} setLineweight={setLineweight} /> */}
+                    <OpacitySlider opacity={opacity} setOpacity={setOpacity} />
                 </div>
             </div>
         </div>
