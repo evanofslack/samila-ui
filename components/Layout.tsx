@@ -17,10 +17,7 @@ const Layout = ({ children, title = "This is the default title" }: Props) => (
             <meta name="viewport" content="initial-scale=1.0, width=device-width" />
         </Head>
         <header>
-            <nav className="flex flex-row items-center justify-between pt-5 pl-8 w-full lg:pt-10 lg:pl-16 lg:pb-6">
-                <h1 className="text-3xl font-semibold lg:text-5xl ">Samila</h1>
-                <MobileNav />
-            </nav>
+            <MobileNav />
         </header>
         {children}
         <footer className=" text-sm font-light flex flex-row justify-between w-screen p-6 pb-4 pt-10">

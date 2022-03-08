@@ -16,7 +16,12 @@ export default function SelectProj({ proj, setProj }: ProjProps) {
     return (
         <div className="pt-2">
             <p className="font-light">projection</p>
-            <Select data={opts} defaultValue={proj} />
+            <Select
+                data={opts}
+                defaultValue={proj}
+                onChange={(proj: string) => setProj(proj)}
+                radius={0}
+            />
         </div>
     );
 }

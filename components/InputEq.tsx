@@ -14,7 +14,7 @@ export default function InputEq({ eq, setEq }: EqProps) {
                 defaultValue={eq}
                 min={1}
                 max={20}
-                radius="xs"
+                radius={0}
                 onChange={(eq: number) => setEq(eq)}
             />
         </div>

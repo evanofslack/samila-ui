@@ -14,15 +14,16 @@ export default function MobileNav() {
 
     return (
         <div>
-            <AiOutlineMenu size="1.8rem" onClick={toggle} className="mr-8" />
+            <nav className="flex flex-row items-center justify-between py-3 px-8 w-full bg-white  border-b-2 border-gray-100">
+                <h1 className="text-3xl font-semibold">Samila</h1>
+                {!isOpen && <AiOutlineMenu size="1.8rem" onClick={toggle} />}
+                {isOpen && <GrClose size="1.5rem" onClick={toggle} />}
+            </nav>
             {isOpen && (
-                <div className="fixed top-0 left-0 bg-gray-100 w-screen h-full z-10">
-                    <nav className="flex flex-row items-center justify-between pt-5 pr-9 pl-8 w-full">
-                        <h1 className="text-3xl font-semibold ">Samila</h1>
-                        <GrClose size="1.5rem" onClick={toggle} />
-                    </nav>
-                    <div className="w-full flex items-center justify-center ">
-                        <div className="flex flex-col items-start pt-24 font-light m-12 max-w-xl">
+                <div className="bg-gray-50 w-screen h-screen z-10 mt-1">
+                    <nav className="flex flex-row items-center justify-between pt-5 pr-9 pl-8 w-full"></nav>
+                    <div className="w-full flex items-center justify-center pt-12 ">
+                        <div className="flex flex-col items-start p-4 lg:p-12 font-light m-12 max-w-xl bg-white shadow-sm">
                             <p className="pb-4">
                                 <a
                                     href="https://github.com/sepandhaghighi/samila"
@@ -30,7 +31,7 @@ export default function MobileNav() {
                                 >
                                     Samila
                                 </a>
-                                &nbsp;is a python library that creates generative art.
+                                &nbsp;is a python library for creating generative art.
                             </p>
                             <p className="pb-4">
                                 Applying mathematical equations to thousands of psuedo-random
