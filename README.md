@@ -1,6 +1,4 @@
-# samilaUI
-
-##https://samila-ui.vercel.app/
+# [samilaUI](https://samila-ui.vercel.app/)
 
 ### Web demo of [Samila](https://github.com/sepandhaghighi/samila), a python generative art library
 
@@ -8,6 +6,7 @@
 * [FastAPI](https://github.com/tiangolo/fastapi) backend with [samila-http](https://samila-api.herokuapp.com/docs)
 * Custom styles with [TailwindCSS](https://tailwindcss.com/)
 * Deloyed with [Vercel](https://vercel.com/)
+
 
 ##### Start App Locally
 
