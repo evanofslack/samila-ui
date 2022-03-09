@@ -1,12 +1,12 @@
 # samilaUI
 
 
-### Web demo of [Samila, a python generative art library](https://github.com/sepandhaghighi/samila)
+### Web demo of [Samila](https://github.com/sepandhaghighi/samila), a python generative art library
 
-* [Next.js](https://nextjs.org/) w/typescript web app.
-* [FastAPI](https://github.com/tiangolo/fastapi) backend with [samila-http](https://samila-api.herokuapp.com/docs).
+* [Next.js](https://nextjs.org/) w/typescript web app
+* [FastAPI](https://github.com/tiangolo/fastapi) backend with [samila-http](https://samila-api.herokuapp.com/docs)
 * Custom styles with [TailwindCSS](https://tailwindcss.com/)
-* Deloyed with [Vercel](https://vercel.com/).
+* Deloyed with [Vercel](https://vercel.com/)
 
 ##### Start App Locally
 
