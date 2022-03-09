@@ -6,9 +6,8 @@ import SamilaImage from "./SamilaImage";
 import ColorInput from "./ColorInput";
 import SelectProj from "./SelectProj";
 import InputEq from "./InputEq";
-import { Button, Slider } from "@mantine/core";
-import LineweightSlider from "./LineweightSlider";
-import OpacitySlider from "./OpacitySlider";
+import { Button } from "@mantine/core";
+import MySlider from "./MySlider";
 
 export default function Plot() {
     const initialParam: GeneratorParams = {
@@ -16,6 +15,7 @@ export default function Plot() {
         proj: "rectilinear",
         color: "#000000",
         bg: "#ffffff",
+        spot: 50,
         seed: null,
         text: null,
     };
@@ -23,8 +23,7 @@ export default function Plot() {
     const [bg, setBg] = useState(initialParam.bg);
     const [eq, setEq] = useState(initialParam.eq);
     const [proj, setProj] = useState(initialParam.proj);
-    const [opacity, setOpacity] = useState(10);
-    const [lineweight, setLineweight] = useState(10);
+    const [spot, setSpot] = useState(initialParam.spot);
     const [active, setActive] = useState("line");
 
     const [params, setParams] = useState<GeneratorParams>(initialParam);
@@ -35,6 +34,7 @@ export default function Plot() {
             ...prevParams,
             color: line,
             bg: bg,
+            spot: spot / 100, // api takes spot_size 0.0 - 1.0, slider goes 0.0 - 100.0
             proj: proj,
             eq: eq,
         }));
@@ -89,8 +89,7 @@ export default function Plot() {
                     </div>
                 </div>
                 <div className="flex flex-col items-start w-5/6 pt-2 px-4">
-                    {/* <LineweightSlider lineweight={lineweight} setLineweight={setLineweight} /> */}
-                    <OpacitySlider opacity={opacity} setOpacity={setOpacity} />
+                    <MySlider title="spot size" value={spot} setValue={setSpot} />
                 </div>
             </div>
         </div>

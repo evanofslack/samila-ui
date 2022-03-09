@@ -3,6 +3,7 @@ export type GeneratorParams = {
     proj: string;
     color: string;
     bg: string;
+    spot: number;
     seed: number | null;
     text: string | null;
 };
