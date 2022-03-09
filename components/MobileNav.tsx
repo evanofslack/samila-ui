@@ -21,8 +21,7 @@ export default function MobileNav() {
             </nav>
             {isOpen && (
                 <div className="bg-gray-50 w-screen h-screen z-10 mt-1">
-                    <nav className="flex flex-row items-center justify-between pt-5 pr-9 pl-8 w-full"></nav>
-                    <div className="w-full flex items-center justify-center pt-12 ">
+                    <div className="w-full flex items-center justify-center pt-12 flex-grow">
                         <div className="flex flex-col items-start p-4 lg:p-12 font-light m-12 max-w-xl bg-white shadow-sm">
                             <p className="pb-4">
                                 <a
@@ -43,7 +42,9 @@ export default function MobileNav() {
                             </p>
                         </div>
                     </div>
-                    <Footer />
+                    <footer className="fixed bottom-0 right-0">
+                        <Footer />
+                    </footer>
                 </div>
             )}
         </div>
