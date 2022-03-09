@@ -2,7 +2,7 @@
 
 ### Web demo of [Samila](https://github.com/sepandhaghighi/samila), a python generative art library
 
-* [Next.js](https://nextjs.org/) w/typescript web app
+* [Next.js](https://nextjs.org/) web app
 * [FastAPI](https://github.com/tiangolo/fastapi) backend with [samila-http](https://samila-api.herokuapp.com/docs)
 * Custom styles with [TailwindCSS](https://tailwindcss.com/)
 * Deloyed with [Vercel](https://vercel.com/)
