@@ -5,6 +5,7 @@ import useEffectCallback from "./useEffectCallback";
 export default function useGenerator(params: GeneratorParams) {
     const [img, setImg] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [imgSeed, setImgSeed] = useState(params.seed);
 
     // Convert params into a query string (i.e. eq=1&color="red"&bg="blue")
     var queryString = Object.entries(params)
@@ -19,7 +20,13 @@ export default function useGenerator(params: GeneratorParams) {
         console.log(imageURL);
         setLoading(true);
         fetch(imageURL)
-            .then((resp) => resp.blob())
+            .then((resp) => {
+                let seed = resp.headers.get("X-Seed"); // Get seed from headers
+                if (seed) {
+                    setImgSeed(seed);
+                }
+                return resp.blob();
+            })
             .then((imageBlob) => {
                 const imageObjectURL = URL.createObjectURL(imageBlob);
                 setImg(imageObjectURL);
@@ -32,5 +39,6 @@ export default function useGenerator(params: GeneratorParams) {
     return {
         img,
         loading,
+        imgSeed,
     };
 }

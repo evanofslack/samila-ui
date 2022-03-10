@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { HexColorPicker } from "react-colorful";
 import { GeneratorParams } from "../interfaces";
 import useGenerator from "../hooks/useGenerator";
@@ -6,7 +6,7 @@ import SamilaImage from "./SamilaImage";
 import ColorInput from "./ColorInput";
 import SelectProj from "./SelectProj";
 import InputEq from "./InputEq";
-import { Button } from "@mantine/core";
+import { Button, Switch, Checkbox } from "@mantine/core";
 import MySlider from "./MySlider";
 
 export default function Plot() {
@@ -24,10 +24,12 @@ export default function Plot() {
     const [eq, setEq] = useState(initialParam.eq);
     const [proj, setProj] = useState(initialParam.proj);
     const [spot, setSpot] = useState(initialParam.spot);
-    const [active, setActive] = useState("line");
+    const [seed, setSeed] = useState(initialParam.seed);
+    const [applySeed, setApplySeed] = useState(true);
 
     const [params, setParams] = useState<GeneratorParams>(initialParam);
-    const { img, loading } = useGenerator(params);
+    const { img, loading, imgSeed } = useGenerator(params);
+    const [active, setActive] = useState("line");
 
     function regeneratePlot() {
         setParams((prevParams) => ({
@@ -37,6 +39,7 @@ export default function Plot() {
             spot: spot / 100, // api takes spot_size 0.0 - 1.0, slider goes 0.0 - 100.0
             proj: proj,
             eq: eq,
+            seed: seed,
         }));
     }
 
@@ -44,16 +47,27 @@ export default function Plot() {
         <div className="flex flex-col items-center justify-center lg:flex-row lg: justify-evenly ">
             <SamilaImage img={img} />
             <div className="flex flex-col items-center lg:bg-white lg:drop-shadow-sm lg:px-2 lg:mr-4 lg:py-6">
-                <Button
-                    onClick={regeneratePlot}
-                    variant="white"
-                    color="dark"
-                    radius={0}
-                    loading={loading}
-                    className="mb-4 bg-white font-normal text-[1.05rem] color-black border border-black"
-                >
-                    {loading ? "Generating" : "Generate"}
-                </Button>
+                <div className="flex flex-row w-full items-center justify-around justify-items-center mb-4">
+                    <Button
+                        onClick={regeneratePlot}
+                        variant="white"
+                        color="dark"
+                        radius={0}
+                        loading={loading}
+                        className="bg-white font-normal text-[1.05rem] color-black border border-black"
+                    >
+                        {loading ? "generating" : "generate"}
+                    </Button>
+                    <Checkbox
+                        checked={applySeed}
+                        onChange={(e) => {
+                            applySeed ? setSeed(imgSeed) : setSeed(null);
+                            setApplySeed(e.currentTarget.checked);
+                        }}
+                        radius={0}
+                        label="random seed"
+                    />
+                </div>
                 <div className="flex flex-row items-center justify-center lg:mx-6">
                     <div className="flex flex-row pr-4 ">
                         <div className="flex flex-col w-36">

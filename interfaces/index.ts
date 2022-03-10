@@ -4,6 +4,6 @@ export type GeneratorParams = {
     color: string;
     bg: string;
     spot: number;
-    seed: number | null;
+    seed: string | null;
     text: string | null;
 };
