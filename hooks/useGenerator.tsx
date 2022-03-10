@@ -1,5 +1,5 @@
 import { GeneratorParams } from "../interfaces/index";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import useEffectCallback from "./useEffectCallback";
 
 export default function useGenerator(params: GeneratorParams) {

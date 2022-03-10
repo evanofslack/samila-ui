@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import {
     AiOutlineDownload,
@@ -34,33 +34,37 @@ function getRandomImage(): string {
 export default function SamilaImage({ img }: ImageProps) {
     const [liked, setLiked] = useState(false);
     const [saved, setSaved] = useState(false);
-
     const [placeholder, setPlaceholder] = useState(getRandomImage);
+
     useEffect(() => {
         const i = getRandomImage();
         setPlaceholder(i);
-        console.log(i);
     }, []);
 
+    useEffect(() => {
+        setLiked(false);
+        setSaved(false);
+    }, [img]);
+
     return (
-        <div className="relative flex flex-col items-center justify-center m-5 lg:mt-8 drop-shadow-sm">
+        <div className="flex flex-col items-center justify-center m-5 mb-2 lg:mt-8 drop-shadow-sm">
             {!img && <Image src={placeholder} alt="plot" width="700" height="700" />}
             {img && <Image src={img} alt="plot" width={700} height={700} />}
 
             <div className="w-full flex flex-row justify-end pt-1 px-3">
                 <Tooltip label="like" withArrow className="px-1">
                     <ActionIcon onClick={() => setLiked(!liked)}>
-                        {liked ? <AiFillLike size="1.4rem" /> : <AiOutlineLike size="1.4rem" />}
+                        {liked ? <AiFillLike size="1.3rem" /> : <AiOutlineLike size="1.3rem" />}
                     </ActionIcon>
                 </Tooltip>
                 <Tooltip label="save" withArrow className="px-1">
                     <ActionIcon onClick={() => setSaved(!saved)}>
-                        {saved ? <AiFillSave size="1.4rem" /> : <AiOutlineSave size="1.4rem" />}
+                        {saved ? <AiFillSave size="1.3rem" /> : <AiOutlineSave size="1.3rem" />}
                     </ActionIcon>
                 </Tooltip>
                 <Tooltip label="download" withArrow className="px-1">
                     <ActionIcon onClick={() => downloadImage(img ? img : placeholder)}>
-                        <AiOutlineDownload size="1.4rem" />
+                        <AiOutlineDownload size="1.3rem" />
                     </ActionIcon>
                 </Tooltip>
             </div>

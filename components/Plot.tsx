@@ -6,7 +6,7 @@ import SamilaImage from "./SamilaImage";
 import ColorInput from "./ColorInput";
 import SelectProj from "./SelectProj";
 import InputEq from "./InputEq";
-import { Button, Switch, Checkbox } from "@mantine/core";
+import { Button, Checkbox } from "@mantine/core";
 import MySlider from "./MySlider";
 
 export default function Plot() {
@@ -44,10 +44,10 @@ export default function Plot() {
     }
 
     return (
-        <div className="flex flex-col items-center justify-center lg:flex-row lg: justify-evenly ">
+        <div className="flex flex-col items-center justify-center lg:flex-row lg:justify-evenly ">
             <SamilaImage img={img} />
             <div className="flex flex-col items-center lg:bg-white lg:drop-shadow-sm lg:px-2 lg:mr-4 lg:py-6">
-                <div className="flex flex-row w-full items-center justify-around justify-items-center mb-4">
+                <div className="flex flex-row w-full items-center justify-around justify-items-center mb-3">
                     <Button
                         onClick={regeneratePlot}
                         variant="white"
