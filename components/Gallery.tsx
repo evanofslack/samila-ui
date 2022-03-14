@@ -65,8 +65,6 @@ export default function Gallery() {
                         >
                             {images.map((image, index) => (
                                 <div key={index}>
-                                    {/* <p>{image[0]}</p>
-                                    <p>{image[1]}</p> */}
                                     <GalleryImage image={image[0]}></GalleryImage>
                                     <GalleryImage image={image[1]}></GalleryImage>
                                 </div>
