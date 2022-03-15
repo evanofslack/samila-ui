@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, Fragment } from "react";
 import MobileNav from "./MobileNav";
 import Head from "next/head";
 import Footer from "./Footer";
@@ -9,18 +9,18 @@ type Props = {
 };
 
 const Layout = ({ children, title = "page" }: Props) => (
-    <div>
+    <Fragment>
         <Head>
             <title>{title}</title>
             <meta charSet="utf-8" />
             <meta name="viewport" content="initial-scale=1.0, width=device-width" />
         </Head>
-        <body className="flex flex-col min-h-screen">
+        <div className="flex flex-col min-h-screen">
             <MobileNav />
             <main className="flex-grow">{children}</main>
             <Footer />
-        </body>
-    </div>
+        </div>
+    </Fragment>
 );
 
 export default Layout;
