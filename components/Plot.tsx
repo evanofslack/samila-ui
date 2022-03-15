@@ -44,7 +44,7 @@ export default function Plot() {
     }
 
     return (
-        <div className="flex flex-col items-center justify-center lg:flex-row lg:justify-evenly ">
+        <div className="flex flex-col items-center justify-center lg:flex-row lg:justify-evenly">
             <SamilaImage img={img} />
             <div className="flex flex-col items-center lg:bg-white lg:drop-shadow-sm lg:px-2 lg:mr-4 lg:py-6">
                 <div className="flex flex-row w-full items-center justify-around justify-items-center mb-3">

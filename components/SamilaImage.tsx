@@ -53,15 +53,15 @@ export default function SamilaImage({ img }: ImageProps) {
 
             <div className="w-full flex flex-row justify-end pt-1 px-3">
                 <Tooltip disabled label="like" withArrow className="px-1">
-                    <ActionIcon disabled onClick={() => setLiked(!liked)}>
+                    <ActionIcon onClick={() => setLiked(!liked)}>
                         {liked ? <AiFillLike size="1.3rem" /> : <AiOutlineLike size="1.3rem" />}
                     </ActionIcon>
                 </Tooltip>
-                <Tooltip disabled label="save" withArrow className="px-1">
+                {/* <Tooltip disabled label="save" withArrow className="px-1">
                     <ActionIcon disabled onClick={() => setSaved(!saved)}>
                         {saved ? <AiFillSave size="1.3rem" /> : <AiOutlineSave size="1.3rem" />}
                     </ActionIcon>
-                </Tooltip>
+                </Tooltip> */}
                 <Tooltip label="download" withArrow className="px-1">
                     <ActionIcon onClick={() => downloadImage(img ? img : placeholder)}>
                         <AiOutlineDownload size="1.3rem" />

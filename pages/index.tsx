@@ -2,8 +2,7 @@ import Layout from "../components/Layout";
 import Plot from "../components/Plot";
 import { useEffect } from "react";
 import Gallery from "../components/Gallery";
-import { Grid } from "@mantine/core";
-import GalleryImage from "../components/GalleryImage";
+import About from "../components/About";
 
 export default function IndexPage() {
     // ping heroku server to hot start
@@ -14,6 +13,7 @@ export default function IndexPage() {
     return (
         <Layout title="Samila">
             <Plot />
+            <About />
             <Gallery />
         </Layout>
     );

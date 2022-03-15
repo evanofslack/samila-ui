@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import GalleryImage from "./GalleryImage";
 import Carousel from "react-multi-carousel";
 import "react-multi-carousel/lib/styles.css";
+import { useMediaQuery } from "@mantine/hooks";
 
 const responsive = {
     desktop: {
@@ -37,6 +38,9 @@ function getImages(): [string, string][] {
 export default function Gallery() {
     const [images, setImages] = useState([["", ""]]);
     const [loading, setLoading] = useState(true);
+
+    const matches = useMediaQuery("(min-width: 1024px)"); // autoplay gallery on mobile and tablet
+
     useEffect(() => {
         setLoading(true);
         setImages(getImages());
@@ -48,15 +52,15 @@ export default function Gallery() {
             {!loading && (
                 <div>
                     <h2 className="flex items-center justify-center w-full mt-14 md:mt-18 mb-2 md:mb-4">
-                        <div className="text-2xl font-semibold"> Gallery</div>
+                        {/* <div className="text-3xl font-semibold"> Gallery</div> */}
                     </h2>
 
                     <div className="flex items-center justify-center w-full">
                         <Carousel
-                            className="bg-white w-11/12"
+                            className="bg-white w-11/12 max-w-5xl"
                             responsive={responsive}
                             infinite={true}
-                            // autoPlay={true}
+                            autoPlay={matches ? false : true}
                             shouldResetAutoplay={false}
                             removeArrowOnDeviceType={["tablet", "mobile"]}
                         >
