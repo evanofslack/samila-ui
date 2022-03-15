@@ -22,18 +22,14 @@ const responsive = {
 };
 
 function getImages(): [string, string][] {
-    const NUM_IMAGE = 6;
+    const NUM_IMAGE = 14;
     const BASE_PATH = "/images/samila";
 
     const images: [string, string][] = new Array(NUM_IMAGE / 2);
     for (var i = 0; i < images.length; i++) {
         images[i] = [BASE_PATH + i * 2 + ".png", BASE_PATH + (i * 2 + 1) + ".png"];
     }
-
-    // const images: string[] = new Array(NUM_IMAGE/2)
-    //     .fill(null)
-    //     .map((_, index) => (BASE_PATH + index + ".png", BASE_PATH + index))
-    //     .sort(() => Math.random() - 0.5); // shuffle array
+    images.sort(() => Math.random() - 0.5); // shuffle images
 
     return images;
 }
@@ -60,8 +56,9 @@ export default function Gallery() {
                             className="bg-white w-11/12"
                             responsive={responsive}
                             infinite={true}
-                            autoPlay={true}
+                            // autoPlay={true}
                             shouldResetAutoplay={false}
+                            removeArrowOnDeviceType={["tablet", "mobile"]}
                         >
                             {images.map((image, index) => (
                                 <div key={index}>
