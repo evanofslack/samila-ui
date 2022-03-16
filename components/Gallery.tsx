@@ -55,7 +55,7 @@ export default function Gallery() {
                         {/* <div className="text-3xl font-semibold"> Gallery</div> */}
                     </h2>
 
-                    <div className="flex items-center justify-center w-full">
+                    <div className="flex items-center justify-center w-full drop-shadow-sm">
                         <Carousel
                             className="bg-white w-11/12 max-w-5xl"
                             responsive={responsive}
@@ -65,7 +65,7 @@ export default function Gallery() {
                             removeArrowOnDeviceType={["tablet", "mobile"]}
                         >
                             {images.map((image, index) => (
-                                <div key={index}>
+                                <div className="p-2" key={index}>
                                     <GalleryImage image={image[0]}></GalleryImage>
                                     <GalleryImage image={image[1]}></GalleryImage>
                                 </div>

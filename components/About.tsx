@@ -1,8 +1,8 @@
 export default function About() {
     return (
-        <div className="flex flex-col items-center justify-center">
+        <div className="flex flex-col items-center justify-center drop-shadow-sm">
             <h1 className="text-3xl text-center font-semibold mt-14 md:mt-18 mb-2 md:mb-4 w-3/4">
-                Samila is a generative artist
+                Samila creates generative art
             </h1>
             <div className="bg-white px-6 py-4 mx-4 max-w-2xl font-light lg:px-8">
                 <p className="pb-4">

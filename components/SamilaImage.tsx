@@ -52,7 +52,7 @@ export default function SamilaImage({ img }: ImageProps) {
             {img && <Image src={img} alt="plot" width={700} height={700} />}
 
             <div className="w-full flex flex-row justify-end pt-1 px-3">
-                <Tooltip disabled label="like" withArrow className="px-1">
+                <Tooltip label="like" withArrow className="px-1">
                     <ActionIcon onClick={() => setLiked(!liked)}>
                         {liked ? <AiFillLike size="1.3rem" /> : <AiOutlineLike size="1.3rem" />}
                     </ActionIcon>
