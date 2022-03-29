@@ -23,14 +23,17 @@ const responsive = {
 };
 
 function getImages(): [string, string][] {
-    const NUM_IMAGE = 14;
+    const NUM_IMAGE = 18;
     const BASE_PATH = "/images/samila";
 
-    const images: [string, string][] = new Array(NUM_IMAGE / 2);
-    for (var i = 0; i < images.length; i++) {
-        images[i] = [BASE_PATH + i * 2 + ".png", BASE_PATH + (i * 2 + 1) + ".png"];
+    const demos: number[] = Array.from(Array(NUM_IMAGE).keys());
+    demos.sort(() => Math.random() - 0.5);
+
+    const images: [string, string][] = new Array(NUM_IMAGE);
+    for (var i = 0; i < images.length; i += 2) {
+        images[i] = [BASE_PATH + demos[i] + ".png", BASE_PATH + demos[i + 1] + ".png"];
     }
-    images.sort(() => Math.random() - 0.5); // shuffle images
+    // images.sort(() => Math.random() - 0.5); // shuffle images
 
     return images;
 }

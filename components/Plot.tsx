@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { HexColorPicker } from "react-colorful";
 import { GeneratorParams } from "../interfaces";
 import useGenerator from "../hooks/useGenerator";
@@ -8,6 +8,7 @@ import SelectProj from "./SelectProj";
 import InputEq from "./InputEq";
 import { Button, Checkbox } from "@mantine/core";
 import MySlider from "./MySlider";
+import Randomizer from "./Randomizer";
 
 export default function Plot() {
     const initialParam: GeneratorParams = {
@@ -58,6 +59,13 @@ export default function Plot() {
                     >
                         {loading ? "generating" : "generate"}
                     </Button>
+                    <Randomizer
+                        setEq={setEq}
+                        setProj={setProj}
+                        setLine={setLine}
+                        setBg={setBg}
+                        setSpot={setSpot}
+                    />
                     <Checkbox
                         checked={applySeed}
                         onChange={(e) => {
