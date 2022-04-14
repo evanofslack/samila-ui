@@ -8,7 +8,6 @@ import SelectProj from "./SelectProj";
 import InputEq from "./InputEq";
 import { Button, Checkbox } from "@mantine/core";
 import MySlider from "./MySlider";
-import Randomizer from "./Randomizer";
 
 export default function Plot() {
     const initialParam: GeneratorParams = {
@@ -59,13 +58,6 @@ export default function Plot() {
                     >
                         {loading ? "generating" : "generate"}
                     </Button>
-                    <Randomizer
-                        setEq={setEq}
-                        setProj={setProj}
-                        setLine={setLine}
-                        setBg={setBg}
-                        setSpot={setSpot}
-                    />
                     <Checkbox
                         checked={applySeed}
                         onChange={(e) => {
