@@ -3,28 +3,31 @@ import { notifications } from "@mantine/notifications";
 import { GeneratedImage, GeneratorParams } from "../interfaces";
 import { ApiError, apiError, autoSize, NETWORK_ERROR, paramsQuery } from "../lib/api";
 
+// renders kept for going back; each holds its PNG in memory as an object URL
+const HISTORY = 12;
+
 function headerInt(resp: Response, name: string): number | null {
     const value = parseInt(resp.headers.get(name) ?? "", 10);
     return Number.isNaN(value) ? null : value;
 }
 
-// fetches images on demand, keeping one object URL alive at a time
+// fetches images on demand and keeps the last few, freeing each when it drops off the end
 export default function useGenerator() {
     const [image, setImage] = useState<GeneratedImage | null>(null);
+    // newest first
+    const [history, setHistory] = useState<GeneratedImage[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<ApiError | null>(null);
     // whole seconds since the current render started
     const [elapsed, setElapsed] = useState(0);
     const controllerRef = useRef<AbortController | null>(null);
-    const urlRef = useRef<string | null>(null);
+    const historyRef = useRef<GeneratedImage[]>([]);
 
     useEffect(() => {
         return () => {
             controllerRef.current?.abort();
-            if (urlRef.current) {
-                URL.revokeObjectURL(urlRef.current);
-                urlRef.current = null;
-            }
+            historyRef.current.forEach((entry) => URL.revokeObjectURL(entry.url));
+            historyRef.current = [];
         };
     }, []);
 
@@ -44,6 +47,14 @@ export default function useGenerator() {
     const fail = useCallback((err: ApiError) => {
         setError(err);
         notifications.show({ color: "red", title: err.title, message: err.message });
+    }, []);
+
+    const remember = useCallback((entry: GeneratedImage) => {
+        const next = [entry, ...historyRef.current];
+        next.slice(HISTORY).forEach((old) => URL.revokeObjectURL(old.url));
+        historyRef.current = next.slice(0, HISTORY);
+        setHistory(historyRef.current);
+        setImage(entry);
     }, []);
 
     const generate = useCallback(
@@ -69,13 +80,8 @@ export default function useGenerator() {
                 if (controller.signal.aborted) {
                     return;
                 }
-                const url = URL.createObjectURL(blob);
-                if (urlRef.current) {
-                    URL.revokeObjectURL(urlRef.current);
-                }
-                urlRef.current = url;
-                setImage({
-                    url,
+                remember({
+                    url: URL.createObjectURL(blob),
                     params: {
                         ...params,
                         // X-Eq is only sent for a numbered variation
@@ -98,7 +104,7 @@ export default function useGenerator() {
                 }
             }
         },
-        [fail],
+        [fail, remember],
     );
 
     // stop waiting for the current render; the image shown stays
@@ -108,5 +114,11 @@ export default function useGenerator() {
         setLoading(false);
     }, []);
 
-    return { image, loading, elapsed, error, generate, cancel };
+    // show an earlier render again, without asking the server
+    const restore = useCallback((entry: GeneratedImage) => {
+        setImage(entry);
+        setError(null);
+    }, []);
+
+    return { image, history, loading, elapsed, error, generate, cancel, restore };
 }
