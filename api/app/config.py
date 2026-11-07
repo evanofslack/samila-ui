@@ -1,29 +1,24 @@
-import logging
-import os
 from functools import lru_cache
 
-import matplotlib.font_manager
-from pydantic import BaseSettings
-
-log = logging.getLogger("uvicorn")
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    environment: str = os.getenv("ENVIRONMENT")
-    testing: bool = os.getenv("TESTING")
-    home_url: str = os.getenv("HOME_URL")
+    """App settings. Each field reads the upper-case env var of the same name."""
+
+    port: int = 8080
+    static_dir: str | None = None
+    render_workers: int = 2
+    render_queue: int = 4
+    render_timeout_seconds: float = 30.0
+    rate_limit_per_minute: int = 10
+    global_rate_limit_per_minute: int = 60
+    trust_proxy: bool = False
+    client_ip_header: str = "X-Forwarded-For"
+    docs_enabled: bool = True
+    log_level: str = "info"
 
 
-@lru_cache()
-def get_settings() -> BaseSettings:
+@lru_cache
+def get_settings() -> Settings:
     return Settings()
-
-
-def get_fonts():
-    try:
-        font_dir = ["/Users/evan/Downloads/Montserrat"]
-        for font in matplotlib.font_manager.findSystemFonts(font_dir):
-            matplotlib.font_manager.fontManager.addfont(font)
-    except Exception as e:
-        print(f"Error loading custom fonts from {font_dir[0]}")
-        print(e)

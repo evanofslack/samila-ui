@@ -1,13 +1,11 @@
 import math
 import random
+from collections.abc import Callable
 from itertools import combinations
-from typing import List, Tuple
 
 
 def f1(x, y):
-    result = (
-        random.uniform(-1, 1) * x**2 - math.sin(y**2) + abs(y - x) - math.cos(y)
-    )
+    result = random.uniform(-1, 1) * x**2 - math.sin(y**2) + abs(y - x) - math.cos(y)
     return result
 
 
@@ -29,13 +27,7 @@ def f5(x, y):
 
 
 def f6(x, y):
-    return (
-        random.uniform(-1, 1) * x**3
-        + x**2
-        + y**2
-        + math.cos(y + x**2)
-        - abs(x**2 - y**2)
-    )
+    return random.uniform(-1, 1) * x**3 + x**2 + y**2 + math.cos(y + x**2) - abs(x**2 - y**2)
 
 
 def f7(x, y):
@@ -55,16 +47,11 @@ def f10(x, y):
 
 
 def f11(x, y):
-    return (
-        random.uniform(-1, 1) * math.sin(y) * x**3
-        + x
-        - y**2
-        + math.sin(x + x**2) * abs(x - y)
-    )
+    return random.uniform(-1, 1) * math.sin(y) * x**3 + x - y**2 + math.sin(x + x**2) * abs(x - y)
 
 
-equations: List[callable] = [f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11]
-combos: List[Tuple[callable]] = list(combinations(equations, 2))
+equations: list[Callable] = [f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11]
+combos: list[tuple[Callable, Callable]] = list(combinations(equations, 2))
 
 if __name__ == "__main__":
     print(combos[42])
