@@ -8,7 +8,15 @@ from samila import GenerateMode, Marker, Projection
 
 from app.equations import combos
 from app.ratelimit import rate_limit
-from app.render import MAX_SEED, RendererBusy, RenderParams, RenderTimeout
+from app.render import (
+    DEFAULT_SIZE,
+    MAX_SEED,
+    MAX_SIZE,
+    MIN_SIZE,
+    RendererBusy,
+    RenderParams,
+    RenderTimeout,
+)
 
 log = logging.getLogger(__name__)
 
@@ -77,6 +85,9 @@ async def generative_image(
     spot: Annotated[float, Query(ge=0.01, le=10, description="Point size")] = 0.5,
     alpha: Annotated[float, Query(ge=0.01, le=1, description="Point opacity")] = 0.1,
     rotation: Annotated[float, Query(ge=0, le=360, description="Rotation in degrees")] = 0.0,
+    size: Annotated[
+        int, Query(ge=MIN_SIZE, le=MAX_SIZE, description="Image width and height in pixels")
+    ] = DEFAULT_SIZE,
 ) -> Response:
     """Generate an image with Samila. The seed and equation pair are returned in headers."""
     cacheable = seed is not None and eq is not None
@@ -94,6 +105,7 @@ async def generative_image(
         spot=spot,
         alpha=alpha,
         rotation=rotation,
+        size=size,
     )
 
     start = time.perf_counter()
