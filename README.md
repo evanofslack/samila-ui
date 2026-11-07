@@ -9,10 +9,10 @@ Both ship as one Docker image, [`evanofslack/samila`](https://hub.docker.com/r/e
 
 ## API
 
-`GET /api/image` returns a PNG. Every parameter is optional, and the seed used is returned in the `X-Seed` header, so any image can be reproduced.
+`GET /api/image` returns a PNG, 1000×1000 by default (`size` sets 500–4000 px). Every parameter is optional, and the seed used is returned in the `X-Seed` header, so any image can be reproduced.
 
 ```sh
-curl -o art.png "https://samila.evanslack.dev/api/image?eq=7&seed=4242&proj=polar&color=ffffff&bg=000000"
+curl -o art.png "https://samila.evanslack.dev/api/image?eq=7&seed=4242&proj=polar&color=ffffff&bg=000000&size=2000"
 ```
 
 Parameters, limits and errors are documented at [`/api/docs`](https://samila.evanslack.dev/api/docs) and in [`api/README.md`](api/README.md).
