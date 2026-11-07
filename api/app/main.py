@@ -57,7 +57,7 @@ app.add_middleware(
     allow_origins=["*"],
     allow_methods=["GET"],
     allow_credentials=False,
-    expose_headers=["X-Seed", "X-Eq"],
+    expose_headers=["X-Seed", "X-Eq", "X-F1", "X-F2"],
 )
 
 app.include_router(health.router, prefix="/api")
