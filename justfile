@@ -37,8 +37,13 @@ check: install
     cd api && uv run ruff format --check .
     cd api && uv run ruff check .
     cd api && uv run python -c "import app.main"
+    cd api && uv run python scripts/prerender.py --check
     cd web && npm run type-check
     cd web && npm run build
+
+# write web/lib/equations.json, the default image and any missing variation thumbnails
+prerender *args:
+    cd api && uv run python scripts/prerender.py {{args}}
 
 # build the docker image
 docker:

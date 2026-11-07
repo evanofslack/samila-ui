@@ -33,6 +33,9 @@ jobs:
       - name: import
         run: uv run python -c "import app.main"
 
+      - name: equations.json up to date
+        run: uv run python scripts/prerender.py --check
+
   web:
     runs-on: ubuntu-latest
     defaults:

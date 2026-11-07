@@ -1,6 +1,10 @@
 import { GeneratorParams, Option } from "../interfaces";
+import equations from "./equations.json";
 
-export const MAX_EQ = 54;
+// written by `just prerender` from api/app/equations.py
+export const EQUATIONS = equations.functions;
+export const PAIRS = equations.pairs as [number, number][];
+export const MAX_EQ = PAIRS.length - 1;
 export const MAX_SEED = 1048576;
 
 export const PROJECTIONS = ["rectilinear", "polar", "hammer", "aitoff", "lambert", "mollweide"];
