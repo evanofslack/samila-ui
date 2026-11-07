@@ -21,6 +21,9 @@ from samila import GenerateMode, GenerativeImage, Marker, Projection  # noqa: E4
 from app.equations import combos  # noqa: E402
 
 MAX_SEED = 2**20
+# samila draws a fixed 10x10 inch figure, so pixels = inches * dpi
+FIGURE_INCHES = 10
+MIN_SIZE, MAX_SIZE, DEFAULT_SIZE = 500, 4000, 1000
 
 
 @dataclass(frozen=True)
@@ -36,6 +39,7 @@ class RenderParams:
     spot: float = 0.5
     alpha: float = 0.1
     rotation: float = 0.0
+    size: int = DEFAULT_SIZE
 
 
 def render(params: RenderParams) -> tuple[bytes, int]:
@@ -44,29 +48,35 @@ def render(params: RenderParams) -> tuple[bytes, int]:
     seed = params.seed if params.seed is not None else random.SystemRandom().randint(0, MAX_SEED)
 
     g = GenerativeImage(f1, f2)
-    with warnings.catch_warnings():
+    # samila creates its figure at rcParams["figure.dpi"], and rotation saves an intermediate
+    # image at the figure's dpi, so set it here rather than only on the final savefig
+    dpi = params.size / FIGURE_INCHES
+    with matplotlib.rc_context({"figure.dpi": dpi}), warnings.catch_warnings():
         warnings.simplefilter("ignore", RuntimeWarning)
         g.generate(seed=seed, mode=GenerateMode(params.mode))
         if params.cmap:
             color, cmap = g.data1, params.cmap
         else:
             color, cmap = params.color, None
-        g.plot(
-            color=color,
-            bgcolor=params.bg,
-            cmap=cmap,
-            spot_size=params.spot,
-            projection=Projection(params.proj),
-            marker=Marker[params.marker.upper()],
-            alpha=params.alpha,
-            rotation=params.rotation,
-        )
-    try:
-        buf = io.BytesIO()
-        g.fig.savefig(buf, format="png", facecolor=g.fig.get_facecolor(), edgecolor="none")
-        return buf.getvalue(), seed
-    finally:
-        plt.close(g.fig)
+        try:
+            g.plot(
+                color=color,
+                bgcolor=params.bg,
+                cmap=cmap,
+                spot_size=params.spot,
+                projection=Projection(params.proj),
+                marker=Marker[params.marker.upper()],
+                alpha=params.alpha,
+                rotation=params.rotation,
+            )
+            buf = io.BytesIO()
+            g.fig.savefig(
+                buf, format="png", dpi=dpi, facecolor=g.fig.get_facecolor(), edgecolor="none"
+            )
+            return buf.getvalue(), seed
+        finally:
+            if getattr(g, "fig", None) is not None:
+                plt.close(g.fig)
 
 
 class RendererBusy(Exception):
