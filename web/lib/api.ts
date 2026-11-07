@@ -200,6 +200,13 @@ export function parseQuery(query: URLSearchParams): GeneratorParams | null {
     };
 }
 
+// a shell command that fetches the same image from the API
+export function curlCommand(origin: string, params: GeneratorParams, size: number): string {
+    const query = paramsQuery(params);
+    query.set("size", String(size));
+    return `curl -o samila.png "${origin}/api/image?${query}"`;
+}
+
 export type ApiError = {
     title: string;
     message: string;

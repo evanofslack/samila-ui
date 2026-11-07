@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { ActionIcon, Loader, Tooltip } from "@mantine/core";
-import { FiCopy, FiDownload, FiLink } from "react-icons/fi";
+import { FiCopy, FiDownload, FiLink, FiTerminal } from "react-icons/fi";
 import { GeneratedImage } from "../interfaces";
-import { ApiError, autoSize, paramsQuery } from "../lib/api";
+import { ApiError, autoSize, curlCommand, paramsQuery } from "../lib/api";
 import { DEFAULT_IMAGE, DEFAULT_PARAMS } from "../lib/presets";
 import { variationLabel } from "../lib/variations";
 import CopyIcon from "./CopyIcon";
@@ -45,15 +45,17 @@ function downloadImage(image: GeneratedImage | null) {
 export default function SamilaImage({ image, loading, elapsed, error, onCancel }: ImageProps) {
     const shown = image?.params ?? DEFAULT_PARAMS;
     // the page's address, known only in the browser
+    const [origin, setOrigin] = useState("");
     const [page, setPage] = useState("");
 
     useEffect(() => {
+        setOrigin(window.location.origin);
         setPage(`${window.location.origin}${window.location.pathname}`);
     }, []);
 
     return (
         // on wide screens the square never grows taller than the window below the header
-        <div className="mx-auto flex w-full max-w-[min(100%,calc(100svh-150px))] min-w-0 flex-col">
+        <div className="mx-auto flex w-full max-w-[min(100%,calc(100svh-240px))] min-w-0 flex-col">
             <div className="relative aspect-square w-full overflow-hidden rounded-md border border-line bg-surface">
                 <Image
                     src={image?.url ?? DEFAULT_IMAGE}
@@ -102,6 +104,11 @@ export default function SamilaImage({ image, loading, elapsed, error, onCancel }
                     )}
                 </div>
                 <div className="flex flex-row items-center">
+                    <CopyIcon
+                        value={curlCommand(origin, shown, image?.size ?? 1000)}
+                        label="copy API call"
+                        icon={<FiTerminal size="1.05rem" />}
+                    />
                     <CopyIcon
                         value={`${page}?${paramsQuery(shown)}`}
                         label="copy link"
