@@ -1,17 +1,6 @@
-# [samilaUI](https://samila-ui.vercel.app/)
+# samila
 
-### Web demo of [Samila](https://github.com/sepandhaghighi/samila), a python generative art library
+Web app for [Samila](https://github.com/sepandhaghighi/samila), a Python generative art library.
 
-* [Next.js](https://nextjs.org/) web app
-* [FastAPI](https://github.com/tiangolo/fastapi) backend with [samila-http](https://samila-api.herokuapp.com/docs)
-* Custom styles with [TailwindCSS](https://tailwindcss.com/)
-* Deloyed with [Vercel](https://vercel.com/)
-
-
-##### Start App Locally
-
-##### `npm run dev`
-
-Runs the app in the development mode.
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
+- `web/`: Next.js frontend
+- `api/`: FastAPI backend that renders images with Samila
