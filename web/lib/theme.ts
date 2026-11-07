@@ -1,4 +1,11 @@
-import { createTheme, CSSVariablesResolver, InputWrapper, MantineColorsTuple } from "@mantine/core";
+import {
+    createTheme,
+    CSSVariablesResolver,
+    defaultVariantColorsResolver,
+    InputWrapper,
+    MantineColorsTuple,
+    VariantColorsResolver,
+} from "@mantine/core";
 
 // near-white to near-black; buttons use the darkest shade in light mode and the
 // lightest in dark mode, so the primary colour is always the page's ink
@@ -29,7 +36,18 @@ const dark: MantineColorsTuple = [
     "#05070d",
 ];
 
+// filled ink flips between dark and light with the scheme, so its text has to as well
+const variantColorResolver: VariantColorsResolver = (input) => {
+    const colors = defaultVariantColorsResolver(input);
+    const color = input.color ?? input.theme.primaryColor;
+    if (input.variant === "filled" && color === "ink") {
+        return { ...colors, color: "var(--mantine-primary-color-contrast)" };
+    }
+    return colors;
+};
+
 export const theme = createTheme({
+    variantColorResolver,
     colors: { ink, dark },
     primaryColor: "ink",
     primaryShade: { light: 9, dark: 0 },
@@ -50,6 +68,6 @@ export const theme = createTheme({
 // the page background is paper or midnight rather than mantine's white or grey
 export const cssVariablesResolver: CSSVariablesResolver = () => ({
     variables: {},
-    light: { "--mantine-color-body": "#f6f5f2" },
-    dark: { "--mantine-color-body": "#0b0f1a" },
+    light: { "--mantine-color-body": "#f6f5f2", "--mantine-primary-color-contrast": "#ffffff" },
+    dark: { "--mantine-color-body": "#0b0f1a", "--mantine-primary-color-contrast": "#0b0f1a" },
 });
