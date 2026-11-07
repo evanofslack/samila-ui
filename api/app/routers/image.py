@@ -6,7 +6,7 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from samila import GenerateMode, Marker, Projection
 
-from app.equations import combos
+from app.equations import PAIRS
 from app.ratelimit import rate_limit
 from app.render import (
     DEFAULT_SIZE,
@@ -67,7 +67,7 @@ ERRORS = {
 async def generative_image(
     request: Request,
     eq: Annotated[
-        int | None, Query(ge=0, le=len(combos) - 1, description="Equation pair; random if unset")
+        int | None, Query(ge=0, le=len(PAIRS) - 1, description="Equation pair; random if unset")
     ] = None,
     seed: Annotated[int | None, Query(ge=0, le=MAX_SEED, description="Random if unset")] = None,
     proj: Annotated[ProjectionName, Query(description="Projection")] = "rectilinear",
@@ -92,9 +92,11 @@ async def generative_image(
     """Generate an image with Samila. The seed and equation pair are returned in headers."""
     cacheable = seed is not None and eq is not None
     if eq is None:
-        eq = random.randrange(len(combos))
+        eq = random.randrange(len(PAIRS))
+    f1, f2 = PAIRS[eq]
     params = RenderParams(
-        eq=eq,
+        f1=f1,
+        f2=f2,
         seed=seed,
         proj=proj,
         mode=mode,

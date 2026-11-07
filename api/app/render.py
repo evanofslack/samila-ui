@@ -18,7 +18,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 from samila import GenerateMode, GenerativeImage, Marker, Projection  # noqa: E402
 
-from app.equations import combos  # noqa: E402
+from app.equations import EQUATIONS  # noqa: E402
 
 MAX_SEED = 2**20
 # samila draws a fixed 10x10 inch figure, so pixels = inches * dpi
@@ -28,7 +28,9 @@ MIN_SIZE, MAX_SIZE, DEFAULT_SIZE = 500, 4000, 1000
 
 @dataclass(frozen=True)
 class RenderParams:
-    eq: int
+    # indices into EQUATIONS, resolved inside the worker
+    f1: int
+    f2: int
     seed: int | None = None
     proj: str = Projection.RECTILINEAR.value
     mode: str = GenerateMode.F1_VS_F2.value
@@ -44,7 +46,7 @@ class RenderParams:
 
 def render(params: RenderParams) -> tuple[bytes, int]:
     """Render one image. Returns (png_bytes, seed). Runs in a worker process."""
-    f1, f2 = combos[params.eq]
+    f1, f2 = EQUATIONS[params.f1].fn, EQUATIONS[params.f2].fn
     seed = params.seed if params.seed is not None else random.SystemRandom().randint(0, MAX_SEED)
 
     g = GenerativeImage(f1, f2)
