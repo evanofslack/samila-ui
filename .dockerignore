@@ -1,0 +1,13 @@
+**/.git
+**/.DS_Store
+**/node_modules
+**/.next
+**/out
+**/.venv
+**/__pycache__
+**/.ruff_cache
+**/.env
+*.md
+docker-compose*.yaml
+justfile
+.github
