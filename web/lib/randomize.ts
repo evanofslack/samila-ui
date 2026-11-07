@@ -33,7 +33,7 @@ function randomColors(): { color: string; bg: string } {
     return Math.random() < 0.5 ? { color: dark, bg: light } : { color: light, bg: dark };
 }
 
-export function randomParams(): GeneratorParams {
+export function randomParams(): Omit<GeneratorParams, "size"> {
     const otherMarkers = MARKERS.map((m) => m.value).filter((m) => m !== "point" && m !== "circle");
     const otherModes = MODES.map((m) => m.value).filter(
         (m) => m !== "f1_vs_f2" && m !== "f2_vs_f1",

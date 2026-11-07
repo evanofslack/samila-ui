@@ -11,6 +11,7 @@ import ColorInput from "./ColorInput";
 import SelectProj from "./SelectProj";
 import InputEq from "./InputEq";
 import Advanced from "./Advanced";
+import Resolution from "./Resolution";
 
 export default function Plot() {
     const [params, setParams] = useState<GeneratorParams>(DEFAULT_PARAMS);
@@ -63,7 +64,7 @@ export default function Plot() {
                         generate
                     </Button>
                     <Button
-                        onClick={() => run(randomParams(), true)}
+                        onClick={() => run({ ...randomParams(), size: params.size }, true)}
                         variant="default"
                         disabled={loading}
                         leftSection={<FiShuffle aria-hidden />}
@@ -100,6 +101,7 @@ export default function Plot() {
                 </div>
                 <SelectProj proj={params.proj} setProj={(proj) => update("proj", proj)} />
                 <InputEq eq={params.eq} setEq={(eq) => update("eq", eq)} />
+                <Resolution size={params.size} setSize={(size) => update("size", size)} />
                 <Advanced params={params} update={update} />
             </div>
         </div>
