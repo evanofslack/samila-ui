@@ -1,134 +1,117 @@
-from typing import Callable, Optional, Tuple
+import logging
+import random
+import time
+from typing import Annotated, Literal
 
-import matplotlib.colors as colors
-import matplotlib.pyplot as plt
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from samila import GenerateMode, Marker, Projection
+
 from app.equations import combos
-from fastapi import APIRouter, BackgroundTasks, Query
-from fastapi.responses import StreamingResponse
-from samila import GenerativeImage
-from samila.functions import save_fig_buf
-from samila.params import VALID_COLORS, Projection
+from app.ratelimit import rate_limit
+from app.render import MAX_SEED, RendererBusy, RenderParams, RenderTimeout
 
-router = APIRouter(
-    tags=["image"],
+log = logging.getLogger(__name__)
+
+router = APIRouter(tags=["image"])
+
+_EXCLUDED = {"RANDOM", "DEFAULT"}
+
+PROJECTIONS = tuple(
+    dict.fromkeys(p.value for n, p in Projection.__members__.items() if n not in _EXCLUDED)
+)
+MODES = tuple(
+    dict.fromkeys(m.value for n, m in GenerateMode.__members__.items() if n not in _EXCLUDED)
+)
+MARKERS = tuple(n.lower() for n in Marker.__members__ if n not in _EXCLUDED)
+CMAPS = (
+    "viridis",
+    "plasma",
+    "inferno",
+    "magma",
+    "cividis",
+    "twilight",
+    "turbo",
+    "cool",
+    "spring",
+    "ocean",
 )
 
+ProjectionName = Literal[*PROJECTIONS]
+ModeName = Literal[*MODES]
+MarkerName = Literal[*MARKERS]
+CmapName = Literal[*CMAPS]
 
-def handle_eq(eq: int) -> Tuple[Optional[Callable], Optional[Callable]]:
-    f1, f2 = None, None
-    if eq != None:
-        try:
-            f1, f2 = combos[eq]
+HEX = r"^[0-9a-fA-F]{6}$"
 
-        except IndexError:  # Out of range of defined combos
-            pass
-    return f1, f2
-
-
-def handle_proj(proj: str) -> Optional[str]:
-    p = None
-    if proj != None:
-        for x in Projection:
-            if proj.lower() == x.value:
-                p = x
-                break
-        else:
-            print("projection not found")
-    return p
+ERRORS = {
+    429: {"description": "Rate limit exceeded (see Retry-After)"},
+    503: {"description": "Renderer busy, try again later"},
+    504: {"description": "Render timed out"},
+}
 
 
-def handle_color(color: str) -> Optional[str | Tuple[float, float, float]]:
-    c = None
-    if color != None:
-        if isinstance(color, str) and color in VALID_COLORS:
-            c = color
-        elif isinstance(color, str):
-            try:
-                c = colors.hex2color(f"#{color}")  # Add '#' to create valid hexcode
-            except Exception as e:
-                print(e)
-                print(f"{color} is an invalid color")
-    return c
-
-
-def handle_spot_size(spot_size: float) -> Optional[float]:
-    spot = None
-    if spot_size != None and spot_size <= 1.0 and spot_size >= 0.0:
-        spot = spot_size
-    return spot
-
-
-def handle_seed(seed: str) -> Optional[str]:
-    s = None
-    if seed != None:
-        s = seed
-    return s
-
-
-def handle_text(g: GenerativeImage, text: str) -> None:
-    if text != None:
-        plt.text(
-            0.05,
-            0.9,
-            text,
-            color="white",
-            fontsize=48,
-            transform=g.fig.transFigure,
-            fontweight=700,
-            fontstretch=100,
-            fontfamily="montserrat",
-        )
-
-
-def create_image(
-    f1: Optional[Callable],
-    f2: Optional[Callable],
-    proj: Optional[str],
-    color: Optional[str | Tuple[float, float, float]],
-    bg: Optional[str | Tuple[float, float, float]],
-    spot: Optional[float],
-    seed: Optional[str],
-) -> GenerativeImage:
-    g = GenerativeImage(f1, f2)
-    g.generate(seed=seed)
-    g.plot(projection=proj, color=color, bgcolor=bg, spot_size=spot)
-    return g
-
-
-def write_image(g: GenerativeImage):
-    resp = save_fig_buf(g.fig)
-    if not resp["status"]:
-        print("Could not save image to buffer")
-        return None
-    buffer = resp["buffer"]
-    buffer.seek(0)
-    return buffer
-
-
-@router.get("/image", responses={200: {"content": {"image/png": {}}}})
+@router.get(
+    "/image",
+    response_class=Response,
+    responses={200: {"content": {"image/png": {}}}, **ERRORS},
+    dependencies=[Depends(rate_limit)],
+)
 async def generative_image(
-    eq: int | None = None,
-    proj: str | None = None,
-    color: str | None = None,
-    bg: str | None = None,
-    spot: float | None = None,
-    seed: int | None = None,
-):
-    """
-    Generate image with Samila
+    request: Request,
+    eq: Annotated[
+        int | None, Query(ge=0, le=len(combos) - 1, description="Equation pair; random if unset")
+    ] = None,
+    seed: Annotated[int | None, Query(ge=0, le=MAX_SEED, description="Random if unset")] = None,
+    proj: Annotated[ProjectionName, Query(description="Projection")] = "rectilinear",
+    mode: Annotated[ModeName, Query(description="Generate mode")] = "f1_vs_f2",
+    color: Annotated[
+        str, Query(pattern=HEX, description="Point color, hex without '#'")
+    ] = "000000",
+    bg: Annotated[
+        str, Query(pattern=HEX, description="Background color, hex without '#'")
+    ] = "ffffff",
+    cmap: Annotated[
+        CmapName | None, Query(description="Gradient colormap; overrides color")
+    ] = None,
+    marker: Annotated[MarkerName, Query(description="Marker shape")] = "point",
+    spot: Annotated[float, Query(ge=0.01, le=10, description="Point size")] = 0.5,
+    alpha: Annotated[float, Query(ge=0.01, le=1, description="Point opacity")] = 0.1,
+    rotation: Annotated[float, Query(ge=0, le=360, description="Rotation in degrees")] = 0.0,
+) -> Response:
+    """Generate an image with Samila. The seed and equation pair are returned in headers."""
+    cacheable = seed is not None and eq is not None
+    if eq is None:
+        eq = random.randrange(len(combos))
+    params = RenderParams(
+        eq=eq,
+        seed=seed,
+        proj=proj,
+        mode=mode,
+        color=f"#{color}",
+        bg=f"#{bg}",
+        cmap=cmap,
+        marker=marker,
+        spot=spot,
+        alpha=alpha,
+        rotation=rotation,
+    )
 
-    """
+    start = time.perf_counter()
+    try:
+        png, used_seed = await request.app.state.renderer.render(params)
+    except RendererBusy as e:
+        raise HTTPException(status_code=503, detail="Renderer busy, try again later") from e
+    except RenderTimeout as e:
+        raise HTTPException(status_code=504, detail="Render timed out") from e
+    duration = time.perf_counter() - start
+    log.info("render %s seed=%d duration=%.2fs", params, used_seed, duration)
 
-    print(eq, proj, color, bg, seed)
-
-    f1, f2 = handle_eq(eq)  # Equations
-    p = handle_proj(proj)  # Projection
-    c = handle_color(color)  # Line Color
-    b = handle_color(bg)  # Background Color
-    ss = handle_spot_size(spot)  # Spot Size
-    s = handle_seed(seed)  # Seed
-    g = create_image(f1, f2, p, c, b, ss, s)  # Generate Image
-    buffer = write_image(g)  # Write image to buffer
-    headers = {"X-Seed": str(g.seed)}  # Add seed as header
-
-    return StreamingResponse(content=buffer, headers=headers, media_type="image/png")
+    return Response(
+        content=png,
+        media_type="image/png",
+        headers={
+            "X-Seed": str(used_seed),
+            "X-Eq": str(eq),
+            "Cache-Control": "public, max-age=31536000, immutable" if cacheable else "no-store",
+        },
+    )
