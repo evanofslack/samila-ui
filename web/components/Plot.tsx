@@ -49,9 +49,9 @@ export default function Plot() {
     }, [params]);
 
     return (
-        <div className="flex flex-col items-center justify-center lg:flex-row lg:items-start lg:justify-evenly">
+        <div className="flex flex-col items-center justify-center px-4 lg:flex-row lg:items-start lg:justify-evenly lg:gap-8">
             <SamilaImage image={image} loading={loading} />
-            <div className="flex w-full max-w-sm flex-col gap-2 bg-white px-4 py-6 drop-shadow-sm lg:mt-8 lg:mr-4">
+            <div className="flex w-full max-w-sm flex-col gap-2 bg-white px-4 py-6 drop-shadow-sm lg:mt-8 lg:shrink-0">
                 <div className="flex flex-row gap-2">
                     <Button
                         onClick={() => run(params, lockSeed)}

@@ -1,4 +1,4 @@
-import { createTheme } from "@mantine/core";
+import { createTheme, InputWrapper } from "@mantine/core";
 
 // a clean white panel UI with a light font and near-square corners
 export const theme = createTheme({
@@ -9,4 +9,8 @@ export const theme = createTheme({
     defaultRadius: "xs",
     radius: { xs: "2px", sm: "3px" },
     cursorType: "pointer",
+    components: {
+        // labels in the same light weight as the rest of the page
+        InputWrapper: InputWrapper.extend({ styles: { label: { fontWeight: 400 } } }),
+    },
 });

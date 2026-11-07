@@ -39,7 +39,7 @@ export default function SamilaImage({ image, loading }: ImageProps) {
     const src = image?.url ?? placeholder;
 
     return (
-        <div className="flex w-full max-w-[700px] flex-col p-4 lg:mt-4">
+        <div className="flex w-full max-w-[700px] min-w-0 flex-col py-4 lg:mt-4">
             <div className="relative aspect-square w-full bg-white drop-shadow-sm">
                 <LoadingOverlay
                     visible={loading}
