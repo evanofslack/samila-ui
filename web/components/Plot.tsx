@@ -82,7 +82,12 @@ function Actions({ dirty, locked, loading, onGenerate, onSurprise }: ActionsProp
     );
 }
 
-export default function Plot() {
+type PlotProps = {
+    // told about each image shown, so the rest of the page can describe it
+    onShown?: (params: GeneratorParams, size: number) => void;
+};
+
+export default function Plot({ onShown }: PlotProps) {
     const [params, setParams] = useState<GeneratorParams>(DEFAULT_PARAMS);
     const [locked, setLocked] = useState(false);
     const { image, history, loading, elapsed, error, generate, cancel, restore } = useGenerator();
@@ -136,6 +141,7 @@ export default function Plot() {
     // the address bar describes the image on screen
     useEffect(() => {
         if (image) {
+            onShown?.(image.params, image.size);
             const url = `${window.location.pathname}?${paramsQuery(image.params)}`;
             window.history.replaceState(window.history.state, "", url);
         }
