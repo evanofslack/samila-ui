@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Button, Switch } from "@mantine/core";
+import { FiShuffle } from "react-icons/fi";
 import { GeneratorParams } from "../interfaces";
 import { DEFAULT_PARAMS, MAX_SEED, paramsQuery, parseQuery } from "../lib/api";
 import { randomInt } from "../lib/random";
+import { randomParams } from "../lib/randomize";
 import useGenerator from "../hooks/useGenerator";
 import SamilaImage from "./SamilaImage";
 import ColorInput from "./ColorInput";
@@ -50,14 +52,27 @@ export default function Plot() {
         <div className="flex flex-col items-center justify-center lg:flex-row lg:items-start lg:justify-evenly">
             <SamilaImage image={image} loading={loading} />
             <div className="flex w-full max-w-sm flex-col gap-2 bg-white px-4 py-6 drop-shadow-sm lg:mt-8 lg:mr-4">
-                <div className="mb-1 flex flex-row items-center justify-around gap-2">
+                <div className="flex flex-row gap-2">
                     <Button
                         onClick={() => run(params, lockSeed)}
-                        variant="default"
+                        variant="filled"
+                        color="dark"
                         loading={loading}
+                        className="flex-1"
                     >
                         generate
                     </Button>
+                    <Button
+                        onClick={() => run(randomParams(), true)}
+                        variant="default"
+                        disabled={loading}
+                        leftSection={<FiShuffle aria-hidden />}
+                        className="flex-1"
+                    >
+                        randomize
+                    </Button>
+                </div>
+                <div className="mb-1">
                     <Switch
                         checked={lockSeed}
                         onChange={(e) => setLockSeed(e.currentTarget.checked)}
