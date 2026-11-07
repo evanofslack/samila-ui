@@ -39,6 +39,7 @@ Interactive docs: <http://localhost:8080/api/docs>. Lint with
 | `spot` | 0.01–10 | 0.5 |
 | `alpha` | 0.01–1 | 0.1 |
 | `rotation` | 0–360 | 0 |
+| `size` | image width and height in pixels, 500–4000 | 1000 |
 
 The response is `image/png` with headers:
 
