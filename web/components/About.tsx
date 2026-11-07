@@ -1,10 +1,13 @@
 export default function About() {
     return (
-        <section className="flex flex-col items-center justify-center px-4 drop-shadow-sm">
-            <h2 className="mt-14 mb-2 text-center text-3xl font-semibold md:mt-18 md:mb-4">
+        <section
+            id="how-it-works"
+            className="mx-auto flex max-w-7xl scroll-mt-16 flex-col items-center px-4 pt-24 sm:px-6"
+        >
+            <h2 className="mb-4 text-center text-2xl font-semibold tracking-tight sm:text-3xl">
                 Samila creates generative art
             </h2>
-            <div className="w-full max-w-2xl bg-white px-6 py-4 font-light lg:px-8">
+            <div className="w-full max-w-2xl text-muted">
                 <p className="pb-4">
                     Applying mathematical equations to thousands of pseudo-random points, Samila
                     creates unique geometric patterns. Each generation is driven by a random seed

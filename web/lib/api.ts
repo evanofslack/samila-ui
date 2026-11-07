@@ -82,7 +82,7 @@ export const SIZE = { min: 500, max: 4000, step: 500 };
 
 // the size the image needs on this screen: its displayed width in device pixels,
 // rounded up to a slider step and kept between 1000 and 2000
-const IMAGE_CSS_WIDTH = 700;
+const IMAGE_CSS_WIDTH = 800;
 export function autoSize(): number {
     const width = Math.min(window.innerWidth, IMAGE_CSS_WIDTH) * (window.devicePixelRatio || 1);
     const stepped = Math.ceil(width / SIZE.step) * SIZE.step;

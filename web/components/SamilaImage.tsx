@@ -39,8 +39,9 @@ export default function SamilaImage({ image, loading }: ImageProps) {
     const src = image?.url ?? placeholder;
 
     return (
-        <div className="flex w-full max-w-[700px] min-w-0 flex-col py-4 lg:mt-4">
-            <div className="relative aspect-square w-full bg-white drop-shadow-sm">
+        // on wide screens the square never grows taller than the window below the header
+        <div className="mx-auto flex w-full max-w-[min(100%,calc(100svh-150px))] min-w-0 flex-col">
+            <div className="relative aspect-square w-full overflow-hidden rounded-md border border-line bg-surface">
                 <LoadingOverlay
                     visible={loading}
                     zIndex={10}

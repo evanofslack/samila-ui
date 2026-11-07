@@ -50,9 +50,11 @@ export default function Plot() {
     }, [params]);
 
     return (
-        <div className="flex flex-col items-center justify-center px-4 lg:flex-row lg:items-start lg:justify-evenly lg:gap-8">
-            <SamilaImage image={image} loading={loading} />
-            <div className="flex w-full max-w-sm flex-col gap-2 bg-white px-4 py-6 drop-shadow-sm lg:mt-8 lg:shrink-0">
+        <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] items-start gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-12">
+            <div className="lg:sticky lg:top-[72px]">
+                <SamilaImage image={image} loading={loading} />
+            </div>
+            <div className="flex w-full flex-col gap-3 rounded-md border border-line bg-surface p-5">
                 <div className="flex flex-row gap-2">
                     <Button
                         onClick={() => run(params, lockSeed)}

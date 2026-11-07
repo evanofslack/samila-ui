@@ -24,8 +24,12 @@ export default function Gallery() {
     }, []);
 
     return (
-        <section aria-label="gallery" className="mt-14 flex w-full justify-center drop-shadow-sm">
-            <div className="w-11/12 max-w-5xl bg-white">
+        <section
+            id="gallery"
+            aria-label="gallery"
+            className="mx-auto max-w-7xl scroll-mt-16 px-4 pt-16 sm:px-6"
+        >
+            <div>
                 {slides && (
                     <Carousel
                         slideSize={{ base: "50%", sm: "33.333%", lg: "25%" }}
