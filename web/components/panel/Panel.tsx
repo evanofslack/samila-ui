@@ -1,13 +1,16 @@
 import { ReactNode, useEffect, useState } from "react";
-import { Accordion, ActionIcon, NumberInput, Select, Tooltip } from "@mantine/core";
+import { Accordion, ActionIcon, Select, Tooltip } from "@mantine/core";
 import { FiShuffle } from "react-icons/fi";
 import { GeneratorParams } from "../../interfaces";
-import { ALPHA, CMAPS, MARKERS, MAX_EQ, MODES, PROJECTIONS, ROTATION, SPOT } from "../../lib/api";
+import { ALPHA, MODES, ROTATION, SPOT } from "../../lib/api";
 import { randomColors, randomPoints, randomShape } from "../../lib/randomize";
-import ColorInput from "../ColorInput";
 import { INFO, Label } from "../Info";
 import MySlider from "../MySlider";
 import Resolution from "../Resolution";
+import ColorPicker from "../pickers/ColorPicker";
+import MarkerPicker from "../pickers/MarkerPicker";
+import ProjectionPicker from "../pickers/ProjectionPicker";
+import VariationPicker from "../pickers/VariationPicker";
 
 export type Update = <K extends keyof GeneratorParams>(key: K, value: GeneratorParams[K]) => void;
 
@@ -20,12 +23,6 @@ type PanelProps = {
 const SECTIONS = ["shape", "color", "points", "output"];
 // phones open the two sections that matter most, to keep the page short
 const PHONE_SECTIONS = ["shape", "color"];
-
-const NO_CMAP = "none";
-const CMAP_OPTIONS = [
-    { value: NO_CMAP, label: "none (line colour)" },
-    ...CMAPS.map((c) => ({ value: c, label: c })),
-];
 
 // spot size spans three decades, so its slider runs on a log scale from 0 to 100
 const SPOT_DECADES = Math.log10(SPOT.max / SPOT.min);
@@ -94,21 +91,7 @@ export default function Panel({ params, update, merge }: PanelProps) {
             }}
         >
             <Section value="shape" title="shape" onShuffle={() => merge(randomShape())}>
-                <NumberInput
-                    label={<Label text="variation" info={INFO.variation} />}
-                    description={`0 – ${MAX_EQ}`}
-                    value={params.eq}
-                    min={0}
-                    max={MAX_EQ}
-                    allowDecimal={false}
-                    allowNegative={false}
-                    clampBehavior="strict"
-                    onChange={(value) => {
-                        if (typeof value === "number") {
-                            update("eq", value);
-                        }
-                    }}
-                />
+                <VariationPicker value={params} onChange={(variation) => merge(variation)} />
                 <Select
                     label={<Label text="axes" info={INFO.axes} />}
                     data={MODES}
@@ -116,45 +99,17 @@ export default function Panel({ params, update, merge }: PanelProps) {
                     allowDeselect={false}
                     onChange={(value) => value && update("mode", value)}
                 />
-                <Select
-                    label={<Label text="projection" info={INFO.projection} />}
-                    data={PROJECTIONS}
-                    value={params.proj}
-                    allowDeselect={false}
-                    onChange={(value) => value && update("proj", value)}
-                />
+                <ProjectionPicker value={params.proj} onChange={(proj) => update("proj", proj)} />
             </Section>
 
             <Section value="color" title="color" onShuffle={() => merge(randomColors())}>
-                <div className="flex flex-row gap-3">
-                    <ColorInput
-                        label="line"
-                        value={params.color}
-                        onChange={(color) => update("color", color)}
-                        disabled={params.cmap !== null}
-                    />
-                    <ColorInput
-                        label="background"
-                        value={params.bg}
-                        onChange={(bg) => update("bg", bg)}
-                    />
-                </div>
-                <Select
-                    label={<Label text="colormap" info={INFO.colormap} />}
-                    data={CMAP_OPTIONS}
-                    value={params.cmap ?? NO_CMAP}
-                    allowDeselect={false}
-                    onChange={(value) => update("cmap", value && value !== NO_CMAP ? value : null)}
-                />
+                <ColorPicker value={params} onChange={merge} />
             </Section>
 
             <Section value="points" title="points" onShuffle={() => merge(randomPoints())}>
-                <Select
-                    label="marker"
-                    data={MARKERS}
+                <MarkerPicker
                     value={params.marker}
-                    allowDeselect={false}
-                    onChange={(value) => value && update("marker", value)}
+                    onChange={(marker) => update("marker", marker)}
                 />
                 <MySlider
                     title="spot size"
