@@ -2,11 +2,30 @@ import { FiGithub } from "react-icons/fi";
 
 export default function Footer() {
     return (
-        <footer className="mt-10 flex w-full flex-row items-center justify-between border-t-2 border-gray-100 bg-white px-4 py-3 pb-4 text-sm font-light sm:px-8 md:mt-20">
-            <p>&copy; {new Date().getFullYear()} Samila</p>
-            <a href="https://github.com/evanofslack/samila-ui" aria-label="source on GitHub">
-                <FiGithub size="1.2rem" />
-            </a>
+        <footer className="mt-24 text-sm text-muted">
+            <div className="mx-auto flex max-w-7xl flex-row flex-wrap items-center justify-between gap-4 px-4 py-8 sm:px-6">
+                <p>
+                    built on{" "}
+                    <a
+                        href="https://github.com/sepandhaghighi/samila"
+                        className="underline underline-offset-2 transition-opacity hover:opacity-60"
+                    >
+                        samila
+                    </a>
+                </p>
+                <div className="flex items-center gap-5">
+                    <a href="/api/docs" className="transition-opacity hover:opacity-60">
+                        API
+                    </a>
+                    <a
+                        href="https://github.com/evanofslack/samila-ui"
+                        aria-label="source on GitHub"
+                        className="transition-opacity hover:opacity-60"
+                    >
+                        <FiGithub size="1.1rem" />
+                    </a>
+                </div>
+            </div>
         </footer>
     );
 }
