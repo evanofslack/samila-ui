@@ -10,7 +10,7 @@ export default function SelectProj({ proj, setProj }: ProjProps) {
     return (
         <Select
             label="projection"
-            className="pt-2"
+
             data={PROJECTIONS}
             value={proj}
             allowDeselect={false}

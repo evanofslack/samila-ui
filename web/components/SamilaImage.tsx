@@ -14,7 +14,7 @@ type ImageProps = {
 function downloadImage(image: GeneratedImage) {
     const link = document.createElement("a");
     link.href = image.url;
-    link.download = `samila-${image.eq}-${image.seed}.png`;
+    link.download = `samila-${image.params.eq}-${image.params.seed}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -38,7 +38,7 @@ export default function SamilaImage({ image }: ImageProps) {
                         src={src}
                         alt={
                             image
-                                ? `Samila generative art, variation ${image.eq}, seed ${image.seed}`
+                                ? `Samila generative art, variation ${image.params.eq}, seed ${image.params.seed}`
                                 : "An example of Samila generative art"
                         }
                         width={700}

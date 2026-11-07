@@ -10,7 +10,7 @@ export default function InputEq({ eq, setEq }: EqProps) {
     return (
         <NumberInput
             label="variation"
-            className="pt-2"
+
             value={eq}
             min={0}
             max={MAX_EQ}

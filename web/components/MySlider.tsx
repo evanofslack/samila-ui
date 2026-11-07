@@ -7,19 +7,23 @@ type SliderProps = {
     min: number;
     max: number;
     step: number;
+    format: (value: number) => string;
 };
 
-export default function MySlider({ title, value, setValue, min, max, step }: SliderProps) {
+export default function MySlider({ title, value, setValue, min, max, step, format }: SliderProps) {
     return (
-        <div className="w-full font-light">
-            <p>{title}</p>
+        <div className="w-full">
+            <div className="flex justify-between text-sm">
+                <span>{title}</span>
+                <span className="text-gray-500 tabular-nums">{format(value)}</span>
+            </div>
             <Slider
                 value={value}
                 onChange={setValue}
                 min={min}
                 max={max}
                 step={step}
-                label={(v) => v.toFixed(2)}
+                label={format}
                 thumbLabel={title}
                 color="dark"
             />

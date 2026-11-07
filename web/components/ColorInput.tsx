@@ -1,24 +1,28 @@
+import { ColorInput as MantineColorInput } from "@mantine/core";
+
+const SWATCHES = ["#000000", "#ffffff", "#1d3557", "#e63946", "#f4a261", "#2a9d8f"];
+
 type ColorProps = {
-    color: string;
-    title: string;
-    active: boolean;
-    onSelect: () => void;
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    disabled?: boolean;
+    description?: string;
 };
 
-// a swatch that picks which colour the picker edits
-export default function ColorInput({ color, title, active, onSelect }: ColorProps) {
+export default function ColorInput({ label, value, onChange, disabled, description }: ColorProps) {
     return (
-        <button
-            type="button"
-            className="flex cursor-pointer flex-row items-center p-1"
-            aria-pressed={active}
-            aria-label={`edit ${title} colour`}
-            onClick={onSelect}
-        >
-            <span className={`pr-2 ${active ? "font-normal underline" : "font-light"}`}>
-                {title}
-            </span>
-            <span className="h-8 w-8 border border-black" style={{ backgroundColor: color }} />
-        </button>
+        <MantineColorInput
+            label={label}
+            description={description}
+            value={value}
+            onChange={onChange}
+            disabled={disabled}
+            format="hex"
+            swatches={SWATCHES}
+            swatchesPerRow={6}
+            withEyeDropper={false}
+            className="min-w-0 flex-1"
+        />
     );
 }

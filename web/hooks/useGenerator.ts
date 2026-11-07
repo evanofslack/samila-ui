@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { notifications } from "@mantine/notifications";
 import { GeneratedImage, GeneratorParams } from "../interfaces";
-import { errorMessage, imageQuery } from "../lib/api";
+import { errorMessage, paramsQuery } from "../lib/api";
 
 function headerInt(resp: Response, name: string, fallback: number): number {
     const value = parseInt(resp.headers.get(name) ?? "", 10);
@@ -32,7 +32,7 @@ export default function useGenerator() {
         setLoading(true);
 
         try {
-            const resp = await fetch(`/api/image?${imageQuery(params)}`, {
+            const resp = await fetch(`/api/image?${paramsQuery(params)}`, {
                 signal: controller.signal,
             });
             if (!resp.ok) {
@@ -54,8 +54,11 @@ export default function useGenerator() {
             urlRef.current = url;
             setImage({
                 url,
-                eq: headerInt(resp, "X-Eq", params.eq),
-                seed: headerInt(resp, "X-Seed", params.seed ?? 0),
+                params: {
+                    ...params,
+                    eq: headerInt(resp, "X-Eq", params.eq),
+                    seed: headerInt(resp, "X-Seed", params.seed ?? 0),
+                },
             });
         } catch (err) {
             if (!controller.signal.aborted) {
