@@ -1,5 +1,6 @@
 import { GeneratorParams, Option } from "../interfaces";
 import equations from "./equations.json";
+import { DEFAULT_PARAMS } from "./presets";
 
 // written by `just prerender` from api/app/equations.py
 export const EQUATIONS = equations.functions;
@@ -98,21 +99,6 @@ export function estimateMB(size: number): string {
     const mb = 0.55 * (size / 1000) ** 2;
     return mb < 1 ? mb.toFixed(1) : String(Math.round(mb));
 }
-
-export const DEFAULT_PARAMS: GeneratorParams = {
-    eq: 1,
-    seed: null,
-    proj: "rectilinear",
-    mode: "f1_vs_f2",
-    color: "#000000",
-    bg: "#ffffff",
-    cmap: null,
-    marker: "point",
-    spot: 0.5,
-    alpha: 0.1,
-    rotation: 0,
-    size: null,
-};
 
 // the API takes hex colours without the leading '#'
 function hex(color: string): string {
