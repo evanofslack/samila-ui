@@ -17,17 +17,21 @@ export default function Layout({ children, title = "Samila" }: Props) {
         <>
             <Head>
                 <title>{title}</title>
-                <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+                <meta
+                    name="viewport"
+                    content="initial-scale=1.0, width=device-width, viewport-fit=cover"
+                />
                 <meta name="description" content={DESCRIPTION} />
                 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
                 <meta property="og:type" content="website" />
                 <meta property="og:url" content={SITE} />
                 <meta property="og:title" content={title} />
                 <meta property="og:description" content={DESCRIPTION} />
-                <meta property="og:image" content={`${SITE}/images/example_0.webp`} />
+                <meta property="og:image" content={`${SITE}/images/default.webp`} />
                 <meta name="twitter:card" content="summary_large_image" />
             </Head>
-            <div className="flex min-h-screen flex-col">
+            {/* room for the fixed action bar on phones */}
+            <div className="flex min-h-screen flex-col pb-20 lg:pb-0">
                 <Header />
                 <main className="grow">{children}</main>
                 <Footer />
