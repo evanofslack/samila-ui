@@ -52,3 +52,23 @@
         outline-offset: 2px;
     }
 }
+
+/* an indeterminate bar that sweeps across while an image renders */
+@keyframes sam-progress {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(300%);
+    }
+}
+
+.sam-progress {
+    animation: sam-progress 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sam-progress {
+        animation-duration: 3s;
+    }
+}
