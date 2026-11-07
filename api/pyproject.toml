@@ -1,0 +1,29 @@
+[project]
+name = "samila-api"
+version = "0.2.0"
+description = "REST API wrapper of Samila"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi>=0.162.2",
+    "matplotlib>=3.11.2",
+    "pillow>=13.0.0",
+    "pydantic-settings>=2.16.2",
+    "samila==1.6",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.17.4",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
