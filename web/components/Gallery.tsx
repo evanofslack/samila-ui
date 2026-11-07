@@ -31,7 +31,7 @@ function getImages(): [string, string][] {
 
     const images: [string, string][] = new Array(NUM_IMAGE);
     for (var i = 0; i < images.length; i += 2) {
-        images[i] = [BASE_PATH + demos[i] + ".png", BASE_PATH + demos[i + 1] + ".png"];
+        images[i] = [BASE_PATH + demos[i] + ".webp", BASE_PATH + demos[i + 1] + ".webp"];
     }
     // images.sort(() => Math.random() - 0.5); // shuffle images
 

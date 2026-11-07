@@ -28,7 +28,7 @@ function getRandomInt(max: number): string {
 
 function getRandomImage(): string {
     const BASE_PATH = "/images/example_";
-    return BASE_PATH + getRandomInt(8) + ".png";
+    return BASE_PATH + getRandomInt(8) + ".webp";
 }
 
 export default function SamilaImage({ img }: ImageProps) {
