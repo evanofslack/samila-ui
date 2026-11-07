@@ -1,22 +1,27 @@
-import React from "react";
 import { Slider } from "@mantine/core";
 
 type SliderProps = {
     title: string;
     value: number;
-    setValue: React.Dispatch<React.SetStateAction<number>>;
+    setValue: (value: number) => void;
+    min: number;
+    max: number;
+    step: number;
 };
 
-export default function MySlider({ title, value, setValue }: SliderProps) {
+export default function MySlider({ title, value, setValue, min, max, step }: SliderProps) {
     return (
-        <div className="font-light w-full">
+        <div className="w-full font-light">
             <p>{title}</p>
             <Slider
-                defaultValue={10}
                 value={value}
                 onChange={setValue}
-                label={(value) => (value / 100).toFixed(2)}
-                radius={0}
+                min={min}
+                max={max}
+                step={step}
+                label={(v) => v.toFixed(2)}
+                thumbLabel={title}
+                color="dark"
             />
         </div>
     );

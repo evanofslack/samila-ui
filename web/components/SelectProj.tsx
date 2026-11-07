@@ -1,27 +1,20 @@
-import React from "react";
 import { Select } from "@mantine/core";
+import { PROJECTIONS } from "../lib/api";
 
 type ProjProps = {
     proj: string;
-    setProj: React.Dispatch<React.SetStateAction<string>>;
+    setProj: (proj: string) => void;
 };
-
-const opts = [
-    { value: "rectilinear", label: "rectilinear" },
-    { value: "polar", label: "polar" },
-    { value: "hammer", label: "hammer" },
-];
 
 export default function SelectProj({ proj, setProj }: ProjProps) {
     return (
-        <div className="pt-2">
-            <p className="font-light">projection</p>
-            <Select
-                data={opts}
-                defaultValue={proj}
-                onChange={(proj: string) => setProj(proj)}
-                radius={0}
-            />
-        </div>
+        <Select
+            label="projection"
+            className="pt-2"
+            data={PROJECTIONS}
+            value={proj}
+            allowDeselect={false}
+            onChange={(value) => value && setProj(value)}
+        />
     );
 }

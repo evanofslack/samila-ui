@@ -1,22 +1,27 @@
-import React from "react";
 import { NumberInput } from "@mantine/core";
+import { MAX_EQ } from "../lib/api";
 
 type EqProps = {
     eq: number;
-    setEq: React.Dispatch<React.SetStateAction<number>>;
+    setEq: (eq: number) => void;
 };
 
 export default function InputEq({ eq, setEq }: EqProps) {
     return (
-        <div className="pt-2">
-            <p className="font-light">variation</p>
-            <NumberInput
-                defaultValue={eq}
-                min={1}
-                max={50}
-                radius={0}
-                onChange={(eq: number) => setEq(eq)}
-            />
-        </div>
+        <NumberInput
+            label="variation"
+            className="pt-2"
+            value={eq}
+            min={0}
+            max={MAX_EQ}
+            allowDecimal={false}
+            allowNegative={false}
+            clampBehavior="strict"
+            onChange={(value) => {
+                if (typeof value === "number") {
+                    setEq(value);
+                }
+            }}
+        />
     );
 }

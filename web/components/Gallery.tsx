@@ -1,82 +1,47 @@
 import { useEffect, useState } from "react";
+import { Carousel } from "@mantine/carousel";
 import GalleryImage from "./GalleryImage";
-import Carousel from "react-multi-carousel";
-import "react-multi-carousel/lib/styles.css";
-import { useMediaQuery } from "@mantine/hooks";
+import { shuffle } from "../lib/random";
 
-const responsive = {
-    desktop: {
-        breakpoint: { max: 3000, min: 1024 },
-        items: 4,
-        slidesToSlide: 1, // optional, default to 1.
-    },
-    tablet: {
-        breakpoint: { max: 1024, min: 464 },
-        items: 3,
-        slidesToSlide: 1, // optional, default to 1.
-    },
-    mobile: {
-        breakpoint: { max: 464, min: 0 },
-        items: 2,
-        slidesToSlide: 1, // optional, default to 1.
-    },
-};
+const NUM_IMAGES = 18;
 
-function getImages(): [string, string][] {
-    const NUM_IMAGE = 18;
-    const BASE_PATH = "/images/samila";
-
-    const demos: number[] = Array.from(Array(NUM_IMAGE).keys());
-    demos.sort(() => Math.random() - 0.5);
-
-    const images: [string, string][] = new Array(NUM_IMAGE);
-    for (var i = 0; i < images.length; i += 2) {
-        images[i] = [BASE_PATH + demos[i] + ".webp", BASE_PATH + demos[i + 1] + ".webp"];
+// the gallery images in a random order, two to a slide
+function getSlides(): [string, string][] {
+    const images = shuffle(Array.from({ length: NUM_IMAGES }, (_, i) => `/images/samila${i}.webp`));
+    const slides: [string, string][] = [];
+    for (let i = 0; i + 1 < images.length; i += 2) {
+        slides.push([images[i], images[i + 1]]);
     }
-    // images.sort(() => Math.random() - 0.5); // shuffle images
-
-    return images;
+    return slides;
 }
 
 export default function Gallery() {
-    const [images, setImages] = useState([["", ""]]);
-    const [loading, setLoading] = useState(true);
-
-    const matches = useMediaQuery("(min-width: 1024px)"); // autoplay gallery on mobile and tablet
+    // shuffled after mount, so the server and first client render agree
+    const [slides, setSlides] = useState<[string, string][] | null>(null);
 
     useEffect(() => {
-        setLoading(true);
-        setImages(getImages());
-        setLoading(false);
+        setSlides(getSlides());
     }, []);
 
     return (
-        <div>
-            {!loading && (
-                <div>
-                    <h2 className="flex items-center justify-center w-full mt-14 md:mt-18 mb-2 md:mb-4">
-                        {/* <div className="text-3xl font-semibold"> Gallery</div> */}
-                    </h2>
-
-                    <div className="flex items-center justify-center w-full drop-shadow-sm">
-                        <Carousel
-                            className="bg-white w-11/12 max-w-5xl"
-                            responsive={responsive}
-                            infinite={true}
-                            autoPlay={matches ? false : true}
-                            shouldResetAutoplay={false}
-                            removeArrowOnDeviceType={["tablet", "mobile"]}
-                        >
-                            {images.map((image, index) => (
-                                <div className="p-2" key={index}>
-                                    <GalleryImage image={image[0]}></GalleryImage>
-                                    <GalleryImage image={image[1]}></GalleryImage>
-                                </div>
-                            ))}
-                        </Carousel>
-                    </div>
-                </div>
-            )}
-        </div>
+        <section aria-label="gallery" className="mt-14 flex w-full justify-center drop-shadow-sm">
+            <div className="w-11/12 max-w-5xl bg-white">
+                {slides && (
+                    <Carousel
+                        slideSize={{ base: "50%", sm: "33.333%", lg: "25%" }}
+                        emblaOptions={{ loop: true, align: "start" }}
+                        previousControlProps={{ "aria-label": "previous images" }}
+                        nextControlProps={{ "aria-label": "next images" }}
+                    >
+                        {slides.map(([top, bottom]) => (
+                            <Carousel.Slide key={top} className="p-2">
+                                <GalleryImage image={top} />
+                                <GalleryImage image={bottom} />
+                            </Carousel.Slide>
+                        ))}
+                    </Carousel>
+                )}
+            </div>
+        </section>
     );
 }

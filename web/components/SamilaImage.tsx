@@ -1,69 +1,62 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import {
-    AiOutlineDownload,
-    AiOutlineSave,
-    AiOutlineLike,
-    AiFillLike,
-    AiFillSave,
-} from "react-icons/ai";
+import { AiOutlineDownload } from "react-icons/ai";
 import { ActionIcon, Tooltip } from "@mantine/core";
+import { GeneratedImage } from "../interfaces";
+import { randomInt } from "../lib/random";
+
+const NUM_EXAMPLES = 8;
 
 type ImageProps = {
-    img: string | null;
+    image: GeneratedImage | null;
 };
 
-function downloadImage(image: string) {
+function downloadImage(image: GeneratedImage) {
     const link = document.createElement("a");
-    link.href = image;
-    link.download = "samila";
+    link.href = image.url;
+    link.download = `samila-${image.eq}-${image.seed}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 }
 
-function getRandomInt(max: number): string {
-    return Math.floor(Math.random() * max).toString();
-}
-
-function getRandomImage(): string {
-    const BASE_PATH = "/images/example_";
-    return BASE_PATH + getRandomInt(8) + ".webp";
-}
-
-export default function SamilaImage({ img }: ImageProps) {
-    const [liked, setLiked] = useState(false);
-    const [saved, setSaved] = useState(false);
-    const [placeholder, setPlaceholder] = useState(getRandomImage);
+export default function SamilaImage({ image }: ImageProps) {
+    // picked after mount, so the server and first client render agree
+    const [placeholder, setPlaceholder] = useState<string | null>(null);
 
     useEffect(() => {
-        const i = getRandomImage();
-        setPlaceholder(i);
+        setPlaceholder(`/images/example_${randomInt(NUM_EXAMPLES)}.webp`);
     }, []);
 
-    useEffect(() => {
-        setLiked(false);
-        setSaved(false);
-    }, [img]);
+    const src = image?.url ?? placeholder;
 
     return (
-        <div className="flex flex-col items-center justify-center m-5 mb-2 lg:mt-8 drop-shadow-sm">
-            {!img && <Image src={placeholder} alt="plot" width="700" height="700" />}
-            {img && <Image src={img} alt="plot" width={700} height={700} />}
-
-            <div className="w-full flex flex-row justify-end pt-1 px-3">
-                <Tooltip label="like" withArrow className="px-1">
-                    <ActionIcon onClick={() => setLiked(!liked)}>
-                        {liked ? <AiFillLike size="1.3rem" /> : <AiOutlineLike size="1.3rem" />}
-                    </ActionIcon>
-                </Tooltip>
-                {/* <Tooltip disabled label="save" withArrow className="px-1">
-                    <ActionIcon disabled onClick={() => setSaved(!saved)}>
-                        {saved ? <AiFillSave size="1.3rem" /> : <AiOutlineSave size="1.3rem" />}
-                    </ActionIcon>
-                </Tooltip> */}
-                <Tooltip label="download" withArrow className="px-1">
-                    <ActionIcon onClick={() => downloadImage(img ? img : placeholder)}>
+        <div className="m-5 mb-2 flex w-full max-w-[700px] flex-col items-center justify-center drop-shadow-sm lg:mt-8">
+            <div className="aspect-square w-full bg-white">
+                {src && (
+                    <Image
+                        src={src}
+                        alt={
+                            image
+                                ? `Samila generative art, variation ${image.eq}, seed ${image.seed}`
+                                : "An example of Samila generative art"
+                        }
+                        width={700}
+                        height={700}
+                        className="h-auto w-full"
+                        priority
+                    />
+                )}
+            </div>
+            <div className="flex w-full flex-row justify-end px-3 pt-1">
+                <Tooltip label="download" withArrow>
+                    <ActionIcon
+                        variant="subtle"
+                        color="dark"
+                        aria-label="download image"
+                        disabled={!image}
+                        onClick={() => image && downloadImage(image)}
+                    >
                         <AiOutlineDownload size="1.3rem" />
                     </ActionIcon>
                 </Tooltip>
