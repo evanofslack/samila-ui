@@ -7,6 +7,7 @@ import { paramsQuery, parseQuery } from "../lib/api";
 import { DEFAULT_PARAMS } from "../lib/presets";
 import { randomSeed, surpriseParams } from "../lib/randomize";
 import useGenerator from "../hooks/useGenerator";
+import HistoryStrip from "./HistoryStrip";
 import SamilaImage from "./SamilaImage";
 import Panel from "./panel/Panel";
 import SeedField from "./panel/SeedField";
@@ -84,7 +85,7 @@ function Actions({ dirty, locked, loading, onGenerate, onSurprise }: ActionsProp
 export default function Plot() {
     const [params, setParams] = useState<GeneratorParams>(DEFAULT_PARAMS);
     const [locked, setLocked] = useState(false);
-    const { image, loading, elapsed, error, generate, cancel } = useGenerator();
+    const { image, history, loading, elapsed, error, generate, cancel, restore } = useGenerator();
 
     // the image on screen: the pre-rendered default until the first render
     const shown = image?.params ?? DEFAULT_PARAMS;
@@ -159,6 +160,14 @@ export default function Plot() {
                     elapsed={elapsed}
                     error={error}
                     onCancel={cancel}
+                />
+                <HistoryStrip
+                    history={history}
+                    current={image}
+                    onRestore={(entry) => {
+                        restore(entry);
+                        setParams(entry.params);
+                    }}
                 />
             </div>
             <div className="flex w-full flex-col gap-4 rounded-md border border-line bg-surface p-5">
