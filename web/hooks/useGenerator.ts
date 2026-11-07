@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { notifications } from "@mantine/notifications";
 import { GeneratedImage, GeneratorParams } from "../interfaces";
-import { errorMessage, paramsQuery } from "../lib/api";
+import { ApiError, apiError, NETWORK_ERROR, paramsQuery } from "../lib/api";
 
 function headerInt(resp: Response, name: string, fallback: number): number {
     const value = parseInt(resp.headers.get(name) ?? "", 10);
     return Number.isNaN(value) ? fallback : value;
+}
+
+function showError(error: ApiError) {
+    notifications.show({ color: "red", title: error.title, message: error.message });
 }
 
 // fetches images on demand, keeping one object URL alive at a time
@@ -36,11 +40,7 @@ export default function useGenerator() {
                 signal: controller.signal,
             });
             if (!resp.ok) {
-                notifications.show({
-                    color: "red",
-                    title: "couldn't generate",
-                    message: await errorMessage(resp),
-                });
+                showError(await apiError(resp));
                 return;
             }
             const blob = await resp.blob();
@@ -60,13 +60,9 @@ export default function useGenerator() {
                     seed: headerInt(resp, "X-Seed", params.seed ?? 0),
                 },
             });
-        } catch (err) {
+        } catch {
             if (!controller.signal.aborted) {
-                notifications.show({
-                    color: "red",
-                    title: "couldn't generate",
-                    message: err instanceof Error ? err.message : "network error",
-                });
+                showError(NETWORK_ERROR);
             }
         } finally {
             // a newer request owns the loading state once it has started

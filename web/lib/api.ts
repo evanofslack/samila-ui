@@ -174,18 +174,54 @@ export function parseQuery(query: URLSearchParams): GeneratorParams | null {
     };
 }
 
-// a message for a failed response, from the API's detail when it gives one
-export async function errorMessage(resp: Response): Promise<string> {
+export type ApiError = {
+    title: string;
+    message: string;
+};
+
+export const NETWORK_ERROR: ApiError = {
+    title: "can't reach server",
+    message: "check your connection and try again",
+};
+
+async function detail(resp: Response): Promise<string | null> {
     try {
         const body = await resp.json();
         if (typeof body.detail === "string") {
             return body.detail;
         }
-        if (Array.isArray(body.detail) && body.detail[0]?.msg) {
-            return body.detail.map((d: { msg: string }) => d.msg).join("; ");
+        if (Array.isArray(body.detail)) {
+            return body.detail.map((d: { msg?: string }) => d.msg ?? String(d)).join("; ");
         }
     } catch {
-        // not JSON; fall back to the status
+        // not JSON
     }
-    return `request failed (${resp.status})`;
+    return null;
+}
+
+// what to tell the viewer about a failed response
+export async function apiError(resp: Response): Promise<ApiError> {
+    switch (resp.status) {
+        case 422:
+            return {
+                title: "invalid options",
+                message: (await detail(resp)) ?? "check the options",
+            };
+        case 429: {
+            const wait = Number(resp.headers.get("Retry-After"));
+            const after = Number.isFinite(wait) && wait > 0 ? `${Math.ceil(wait)} s` : "a moment";
+            return { title: "slow down", message: `try again in ${after}` };
+        }
+        case 502:
+            return NETWORK_ERROR;
+        case 503:
+            return { title: "server busy", message: "too many images rendering, try again soon" };
+        case 504:
+            return { title: "took too long", message: "try simpler options, like a smaller spot" };
+        default:
+            return {
+                title: "something went wrong",
+                message: (await detail(resp)) ?? `the server returned ${resp.status}`,
+            };
+    }
 }
