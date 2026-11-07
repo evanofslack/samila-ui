@@ -45,7 +45,7 @@ export default function SamilaImage({ image, loading }: ImageProps) {
                     visible={loading}
                     zIndex={10}
                     overlayProps={{ blur: 1, backgroundOpacity: 0.4 }}
-                    loaderProps={{ color: "dark" }}
+                    loaderProps={{ color: "ink" }}
                 />
                 {src && (
                     <Image
@@ -90,7 +90,6 @@ export default function SamilaImage({ image, loading }: ImageProps) {
                     <Tooltip label="download" withArrow>
                         <ActionIcon
                             variant="subtle"
-                            color="dark"
                             aria-label="download image"
                             disabled={!image}
                             onClick={() => image && downloadImage(image)}

@@ -57,7 +57,6 @@ export default function Plot() {
                     <Button
                         onClick={() => run(params, lockSeed)}
                         variant="filled"
-                        color="dark"
                         loading={loading}
                         className="flex-1"
                     >
@@ -83,7 +82,6 @@ export default function Plot() {
                                 ? `reusing ${params.seed}`
                                 : "new seed each time"
                         }
-                        color="dark"
                     />
                 </div>
                 <div className="flex flex-row gap-3">

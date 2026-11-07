@@ -5,9 +5,9 @@ export default function Document() {
     return (
         <Html lang="en" {...mantineHtmlProps}>
             <Head>
-                <ColorSchemeScript defaultColorScheme="light" />
+                <ColorSchemeScript defaultColorScheme="auto" />
             </Head>
-            <body className="m-0 bg-gray-50 p-0">
+            <body className="m-0 p-0">
                 <Main />
                 <NextScript />
             </body>

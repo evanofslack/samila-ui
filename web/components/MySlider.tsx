@@ -15,7 +15,7 @@ export default function MySlider({ title, value, setValue, min, max, step, forma
         <div className="w-full">
             <div className="flex justify-between text-sm">
                 <span>{title}</span>
-                <span className="text-gray-500 tabular-nums">{format(value)}</span>
+                <span className="text-muted tabular-nums">{format(value)}</span>
             </div>
             <Slider
                 value={value}
@@ -25,7 +25,6 @@ export default function MySlider({ title, value, setValue, min, max, step, forma
                 step={step}
                 label={format}
                 thumbLabel={title}
-                color="dark"
             />
         </div>
     );

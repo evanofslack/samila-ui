@@ -14,7 +14,7 @@ export default function CopyIcon({ value, label, icon }: CopyIconProps) {
         <CopyButton value={value} timeout={1500}>
             {({ copied, copy }) => (
                 <Tooltip label={copied ? "copied" : label} withArrow>
-                    <ActionIcon variant="subtle" color="dark" aria-label={label} onClick={copy}>
+                    <ActionIcon variant="subtle" aria-label={label} onClick={copy}>
                         {copied ? <FiCheck size="1.1rem" /> : icon}
                     </ActionIcon>
                 </Tooltip>
