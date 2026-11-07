@@ -31,7 +31,7 @@ just check   # same checks as ci
 
 | variable | default | |
 |---|---|---|
-| `PORT` | `8080` | listen port (docker image) |
+| `PORT` | `8080` | listen port for `python -m app.main` (the docker image always listens on 8080) |
 | `STATIC_DIR` | unset (`/app/static` in docker) | serve the web export at `/` |
 | `RENDER_WORKERS` | `2` | render processes |
 | `RENDER_QUEUE` | `4` | renders allowed to wait for a worker before returning 503 |

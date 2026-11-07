@@ -1,3 +1,6 @@
+# ignore any UV_ENV_FILE from the shell; config comes from real env vars
+export UV_NO_ENV_FILE := "1"
+
 default:
     @just --list
 

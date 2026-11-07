@@ -6,15 +6,18 @@ COPY web/ ./
 RUN npm run build
 
 
-FROM python:3.14-slim
+FROM python:3.14-slim AS api
 COPY --from=ghcr.io/astral-sh/uv:0.13.6 /uv /usr/local/bin/uv
 WORKDIR /app
-
-# dependencies on their own layer so code changes reuse the cache
-ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_NO_CACHE=1
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_NO_CACHE=1 UV_PYTHON_DOWNLOADS=never
 COPY api/pyproject.toml api/uv.lock api/.python-version ./
 RUN uv sync --frozen --no-dev --no-install-project
 
+
+# same base as the builder, so the venv's interpreter paths stay valid
+FROM python:3.14-slim
+WORKDIR /app
+COPY --from=api /app/.venv ./.venv
 COPY api/app ./app
 COPY --from=web /web/out ./static
 
@@ -24,8 +27,7 @@ USER app
 ENV PATH=/app/.venv/bin:$PATH \
     MPLBACKEND=Agg \
     MPLCONFIGDIR=/tmp/matplotlib \
-    STATIC_DIR=/app/static \
-    PORT=8080
+    STATIC_DIR=/app/static
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/api/health')"
