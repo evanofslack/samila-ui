@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { AiOutlineDownload } from "react-icons/ai";
-import { ActionIcon, Tooltip } from "@mantine/core";
+import { ActionIcon, LoadingOverlay, Tooltip } from "@mantine/core";
+import { FiCopy, FiDownload, FiLink } from "react-icons/fi";
 import { GeneratedImage } from "../interfaces";
+import { paramsQuery } from "../lib/api";
 import { randomInt } from "../lib/random";
+import CopyIcon from "./CopyIcon";
 
 const NUM_EXAMPLES = 8;
 
 type ImageProps = {
     image: GeneratedImage | null;
+    loading: boolean;
 };
 
 function downloadImage(image: GeneratedImage) {
@@ -20,7 +23,12 @@ function downloadImage(image: GeneratedImage) {
     document.body.removeChild(link);
 }
 
-export default function SamilaImage({ image }: ImageProps) {
+function shareLink(image: GeneratedImage): string {
+    const { origin, pathname } = window.location;
+    return `${origin}${pathname}?${paramsQuery(image.params)}`;
+}
+
+export default function SamilaImage({ image, loading }: ImageProps) {
     // picked after mount, so the server and first client render agree
     const [placeholder, setPlaceholder] = useState<string | null>(null);
 
@@ -31,8 +39,14 @@ export default function SamilaImage({ image }: ImageProps) {
     const src = image?.url ?? placeholder;
 
     return (
-        <div className="m-5 mb-2 flex w-full max-w-[700px] flex-col items-center justify-center drop-shadow-sm lg:mt-8">
-            <div className="aspect-square w-full bg-white">
+        <div className="flex w-full max-w-[700px] flex-col p-4 lg:mt-4">
+            <div className="relative aspect-square w-full bg-white drop-shadow-sm">
+                <LoadingOverlay
+                    visible={loading}
+                    zIndex={10}
+                    overlayProps={{ blur: 1, backgroundOpacity: 0.4 }}
+                    loaderProps={{ color: "dark" }}
+                />
                 {src && (
                     <Image
                         src={src}
@@ -48,18 +62,43 @@ export default function SamilaImage({ image }: ImageProps) {
                     />
                 )}
             </div>
-            <div className="flex w-full flex-row justify-end px-3 pt-1">
-                <Tooltip label="download" withArrow>
-                    <ActionIcon
-                        variant="subtle"
-                        color="dark"
-                        aria-label="download image"
-                        disabled={!image}
-                        onClick={() => image && downloadImage(image)}
-                    >
-                        <AiOutlineDownload size="1.3rem" />
-                    </ActionIcon>
-                </Tooltip>
+            <div className="flex min-h-10 flex-row flex-wrap items-center justify-between gap-x-2 pt-1 pl-1">
+                <div className="flex flex-row items-center gap-1 text-sm font-light">
+                    {image && (
+                        <>
+                            <span>
+                                variation <span className="tabular-nums">{image.params.eq}</span>
+                                {" · "}
+                                seed <span className="tabular-nums">{image.params.seed}</span>
+                            </span>
+                            <CopyIcon
+                                value={String(image.params.seed)}
+                                label="copy seed"
+                                icon={<FiCopy size="1rem" />}
+                            />
+                        </>
+                    )}
+                </div>
+                <div className="flex flex-row items-center">
+                    {image && (
+                        <CopyIcon
+                            value={shareLink(image)}
+                            label="copy link"
+                            icon={<FiLink size="1.1rem" />}
+                        />
+                    )}
+                    <Tooltip label="download" withArrow>
+                        <ActionIcon
+                            variant="subtle"
+                            color="dark"
+                            aria-label="download image"
+                            disabled={!image}
+                            onClick={() => image && downloadImage(image)}
+                        >
+                            <FiDownload size="1.1rem" />
+                        </ActionIcon>
+                    </Tooltip>
+                </div>
             </div>
         </div>
     );

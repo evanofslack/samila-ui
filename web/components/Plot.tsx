@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { Button, Checkbox } from "@mantine/core";
+import { useEffect, useState } from "react";
+import { Button, Switch } from "@mantine/core";
 import { GeneratorParams } from "../interfaces";
-import { DEFAULT_PARAMS } from "../lib/api";
+import { DEFAULT_PARAMS, MAX_SEED, paramsQuery, parseQuery } from "../lib/api";
+import { randomInt } from "../lib/random";
 import useGenerator from "../hooks/useGenerator";
 import SamilaImage from "./SamilaImage";
 import ColorInput from "./ColorInput";
@@ -11,29 +12,61 @@ import Advanced from "./Advanced";
 
 export default function Plot() {
     const [params, setParams] = useState<GeneratorParams>(DEFAULT_PARAMS);
-    const [randomSeed, setRandomSeed] = useState(true);
+    const [lockSeed, setLockSeed] = useState(false);
     const { image, loading, generate } = useGenerator();
 
     function update<K extends keyof GeneratorParams>(key: K, value: GeneratorParams[K]) {
         setParams((prev) => ({ ...prev, [key]: value }));
     }
 
-    function regeneratePlot() {
-        generate({ ...params, seed: randomSeed ? null : (image?.params.seed ?? null) });
+    // a new seed for every image, unless the seed is locked and there is one to reuse
+    function run(next: GeneratorParams, keepSeed: boolean) {
+        const seed = keepSeed && next.seed !== null ? next.seed : randomInt(MAX_SEED + 1);
+        const withSeed = { ...next, seed };
+        setParams(withSeed);
+        generate(withSeed);
     }
+
+    // a link with params renders straight away, keeping its seed
+    useEffect(() => {
+        const fromLink = parseQuery(new URLSearchParams(window.location.search));
+        if (fromLink) {
+            const hasSeed = fromLink.seed !== null;
+            setLockSeed(hasSeed);
+            run(fromLink, hasSeed);
+        }
+    }, []);
+
+    // mirror the controls into the address bar once they've changed
+    useEffect(() => {
+        if (params === DEFAULT_PARAMS) {
+            return;
+        }
+        const url = `${window.location.pathname}?${paramsQuery(params)}`;
+        window.history.replaceState(window.history.state, "", url);
+    }, [params]);
 
     return (
         <div className="flex flex-col items-center justify-center lg:flex-row lg:items-start lg:justify-evenly">
-            <SamilaImage image={image} />
+            <SamilaImage image={image} loading={loading} />
             <div className="flex w-full max-w-sm flex-col gap-2 bg-white px-4 py-6 drop-shadow-sm lg:mt-8 lg:mr-4">
-                <div className="mb-1 flex flex-row items-center justify-around">
-                    <Button onClick={regeneratePlot} variant="default" loading={loading}>
+                <div className="mb-1 flex flex-row items-center justify-around gap-2">
+                    <Button
+                        onClick={() => run(params, lockSeed)}
+                        variant="default"
+                        loading={loading}
+                    >
                         generate
                     </Button>
-                    <Checkbox
-                        checked={randomSeed}
-                        onChange={(e) => setRandomSeed(e.currentTarget.checked)}
-                        label="random seed"
+                    <Switch
+                        checked={lockSeed}
+                        onChange={(e) => setLockSeed(e.currentTarget.checked)}
+                        label="lock seed"
+                        description={
+                            lockSeed && params.seed !== null
+                                ? `reusing ${params.seed}`
+                                : "new seed each time"
+                        }
                         color="dark"
                     />
                 </div>
