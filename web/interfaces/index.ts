@@ -1,9 +1,14 @@
 export type GeneratorParams = {
     eq: number;
+    seed: number | null;
     proj: string;
     color: string;
     bg: string;
     spot: number;
-    seed: string | null;
-    text: string | null;
+};
+
+export type GeneratedImage = {
+    url: string;
+    eq: number;
+    seed: number;
 };
