@@ -57,6 +57,38 @@ def f11(x, y):
     return random.uniform(-1, 1) * math.sin(y) * x**3 + x - y**2 + math.sin(x + x**2) * abs(x - y)
 
 
+def f12(x, y):
+    return random.uniform(-1, 1) * math.sin(x * y) + math.cos(x - y**2)
+
+
+def f13(x, y):
+    return random.uniform(-1, 1) * math.exp(-abs(x * y) / 4) * math.cos(x) + math.sin(y)
+
+
+def f14(x, y):
+    return random.uniform(-1, 1) * math.tanh(x * y) - math.cos(x) * math.sin(y**2)
+
+
+def f15(x, y):
+    return random.uniform(-1, 1) * math.sin(x) ** 2 + x * math.cos(y) - math.atan(x * y)
+
+
+def f16(x, y):
+    return random.uniform(-1, 1) * abs(math.sin(x + y)) * y**2 + math.cos(x)
+
+
+def f17(x, y):
+    return random.uniform(-1, 1) * math.cos(x**2 + y) - x * math.sin(y)
+
+
+def f18(x, y):
+    return random.uniform(-1, 1) * math.sin(x - y) * math.cos(x * y) + abs(x)
+
+
+def f19(x, y):
+    return random.uniform(-1, 1) * y * math.cos(x) ** 3 + x * math.sin(x * y)
+
+
 @dataclass(frozen=True)
 class Equation:
     fn: Callable[[float, float], float]
@@ -76,6 +108,14 @@ EQUATIONS: list[Equation] = [
     Equation(f9, "r·cos(x − y)·sin(x + y) + x·y"),
     Equation(f10, "r·(x / y)·cos(x / y) + sin(x / y)"),
     Equation(f11, "r·x³·sin(y) + x − y² + sin(x + x²)·|x − y|"),
+    Equation(f12, "r·sin(x·y) + cos(x − y²)"),
+    Equation(f13, "r·e^(−|x·y| / 4)·cos(x) + sin(y)"),
+    Equation(f14, "r·tanh(x·y) − cos(x)·sin(y²)"),
+    Equation(f15, "r·sin²(x) + x·cos(y) − atan(x·y)"),
+    Equation(f16, "r·|sin(x + y)|·y² + cos(x)"),
+    Equation(f17, "r·cos(x² + y) − x·sin(y)"),
+    Equation(f18, "r·sin(x − y)·cos(x·y) + |x|"),
+    Equation(f19, "r·y·cos³(x) + x·sin(x·y)"),
 ]
 
 # each variation is a pair of equation indices. the first 55 are every pair of the
