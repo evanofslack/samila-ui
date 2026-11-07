@@ -13,6 +13,8 @@ import SeedField from "./panel/SeedField";
 
 const KEYS: (keyof GeneratorParams)[] = [
     "eq",
+    "f1",
+    "f2",
     "seed",
     "proj",
     "mode",

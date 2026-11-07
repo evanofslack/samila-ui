@@ -1,11 +1,8 @@
 import { GeneratorParams, Option } from "../interfaces";
-import equations from "./equations.json";
 import { DEFAULT_PARAMS } from "./presets";
+import { fromEq, fromPair, MAX_EQ, MAX_FN } from "./variations";
 
-// written by `just prerender` from api/app/equations.py
-export const EQUATIONS = equations.functions;
-export const PAIRS = equations.pairs as [number, number][];
-export const MAX_EQ = PAIRS.length - 1;
+export { EQUATIONS, MAX_EQ, PAIRS } from "./variations";
 export const MAX_SEED = 1048576;
 
 export const PROJECTIONS = ["rectilinear", "polar", "hammer", "aitoff", "lambert", "mollweide"];
@@ -108,7 +105,10 @@ function hex(color: string): string {
 // the query string for both the API and a shareable link
 export function paramsQuery(params: GeneratorParams): URLSearchParams {
     const query = new URLSearchParams({
-        eq: String(params.eq),
+        // a numbered variation by its number, any other pair by its equations
+        ...(params.eq !== null
+            ? { eq: String(params.eq) }
+            : { f1: String(params.f1), f2: String(params.f2) }),
         proj: params.proj,
         mode: params.mode,
         color: hex(params.color),
@@ -167,8 +167,17 @@ export function parseQuery(query: URLSearchParams): GeneratorParams | null {
         return null;
     }
     const d = DEFAULT_PARAMS;
+    const eq = readInt(query.get("eq"), MAX_EQ);
+    const f1 = readInt(query.get("f1"), MAX_FN);
+    const f2 = readInt(query.get("f2"), MAX_FN);
+    const variation =
+        eq !== undefined
+            ? fromEq(eq)
+            : f1 !== undefined && f2 !== undefined
+              ? fromPair(f1, f2)
+              : { eq: d.eq, f1: d.f1, f2: d.f2 };
     return {
-        eq: readInt(query.get("eq"), MAX_EQ) ?? d.eq,
+        ...variation,
         seed: readInt(query.get("seed"), MAX_SEED) ?? d.seed,
         proj: parseChoice(query.get("proj"), PROJECTIONS) ?? d.proj,
         mode:

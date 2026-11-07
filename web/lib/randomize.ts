@@ -2,6 +2,7 @@ import { GeneratorParams } from "../interfaces";
 import { CMAPS, MARKERS, MAX_EQ, MAX_SEED, MODES, PROJECTIONS } from "./api";
 import { PALETTES, SHAPES } from "./presets";
 import { pick, pickWeighted, randomFloat, randomInt } from "./random";
+import { fromEq } from "./variations";
 
 type Params = Omit<GeneratorParams, "size">;
 
@@ -47,17 +48,17 @@ export function randomColors(): Pick<Params, "color" | "bg" | "cmap"> {
 }
 
 // the variation and how it's plotted; mostly from the curated shapes
-export function randomShape(): Pick<Params, "eq" | "mode" | "proj"> {
+export function randomShape(): Pick<Params, "eq" | "f1" | "f2" | "mode" | "proj"> {
     if (Math.random() < 0.6) {
         const { eq, mode, proj } = pick(SHAPES);
-        return { eq, mode, proj };
+        return { ...fromEq(eq), mode, proj };
     }
     const otherModes = MODES.map((m) => m.value).filter(
         (m) => m !== "f1_vs_f2" && m !== "f2_vs_f1",
     );
     const otherProjs = PROJECTIONS.filter((p) => p !== "rectilinear" && p !== "polar");
     return {
-        eq: randomInt(MAX_EQ + 1),
+        ...fromEq(randomInt(MAX_EQ + 1)),
         mode: pickWeighted(
             [
                 ["f1_vs_f2", 0.45],
@@ -97,7 +98,8 @@ export function randomPoints(): Pick<Params, "marker" | "spot" | "alpha" | "rota
 // a curated shape with its seed in a curated palette most of the time, else anything goes
 export function surpriseParams(): Params {
     if (Math.random() < 0.7) {
-        return { ...pick(SHAPES), ...randomColors(), cmap: null };
+        const shape = pick(SHAPES);
+        return { ...shape, ...fromEq(shape.eq), ...randomColors(), cmap: null };
     }
     return { ...randomShape(), ...randomPoints(), ...randomColors(), seed: randomSeed() };
 }

@@ -1,5 +1,9 @@
 export type GeneratorParams = {
-    eq: number;
+    // the variation, or null for a pair of equations that isn't one
+    eq: number | null;
+    // the two equations; with eq set they're always PAIRS[eq]
+    f1: number;
+    f2: number;
     seed: number | null;
     proj: string;
     mode: string;

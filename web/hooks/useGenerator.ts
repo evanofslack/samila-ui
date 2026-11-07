@@ -3,9 +3,9 @@ import { notifications } from "@mantine/notifications";
 import { GeneratedImage, GeneratorParams } from "../interfaces";
 import { ApiError, apiError, autoSize, NETWORK_ERROR, paramsQuery } from "../lib/api";
 
-function headerInt(resp: Response, name: string, fallback: number): number {
+function headerInt(resp: Response, name: string): number | null {
     const value = parseInt(resp.headers.get(name) ?? "", 10);
-    return Number.isNaN(value) ? fallback : value;
+    return Number.isNaN(value) ? null : value;
 }
 
 // fetches images on demand, keeping one object URL alive at a time
@@ -78,8 +78,11 @@ export default function useGenerator() {
                     url,
                     params: {
                         ...params,
-                        eq: headerInt(resp, "X-Eq", params.eq),
-                        seed: headerInt(resp, "X-Seed", params.seed ?? 0),
+                        // X-Eq is only sent for a numbered variation
+                        eq: headerInt(resp, "X-Eq"),
+                        f1: headerInt(resp, "X-F1") ?? params.f1,
+                        f2: headerInt(resp, "X-F2") ?? params.f2,
+                        seed: headerInt(resp, "X-Seed") ?? params.seed ?? 0,
                     },
                     size,
                 });

@@ -5,6 +5,7 @@ import { FiCopy, FiDownload, FiLink } from "react-icons/fi";
 import { GeneratedImage } from "../interfaces";
 import { ApiError, autoSize, paramsQuery } from "../lib/api";
 import { DEFAULT_IMAGE, DEFAULT_PARAMS } from "../lib/presets";
+import { variationLabel } from "../lib/variations";
 import CopyIcon from "./CopyIcon";
 
 type ImageProps = {
@@ -28,8 +29,8 @@ function download(href: string, name: string) {
 // so its PNG comes from the API at the chosen size
 function downloadImage(image: GeneratedImage | null) {
     if (image) {
-        const { eq, seed } = image.params;
-        download(image.url, `samila-${eq}-${seed}-${image.size}.png`);
+        const name = variationLabel(image.params).replace(" × ", "-");
+        download(image.url, `samila-${name}-${image.params.seed}-${image.size}.png`);
         return;
     }
     const size = DEFAULT_PARAMS.size ?? autoSize();
@@ -56,7 +57,7 @@ export default function SamilaImage({ image, loading, elapsed, error, onCancel }
             <div className="relative aspect-square w-full overflow-hidden rounded-md border border-line bg-surface">
                 <Image
                     src={image?.url ?? DEFAULT_IMAGE}
-                    alt={`Samila generative art, variation ${shown.eq}, seed ${shown.seed}`}
+                    alt={`Samila generative art, variation ${variationLabel(shown)}, seed ${shown.seed}`}
                     width={1400}
                     height={1400}
                     className={`h-auto w-full transition-opacity duration-300 ${loading ? "opacity-75" : ""}`}
@@ -87,7 +88,8 @@ export default function SamilaImage({ image, loading, elapsed, error, onCancel }
             <div className="flex min-h-10 flex-row flex-wrap items-center justify-between gap-x-2 pt-1">
                 <div className="flex flex-row items-center gap-1 text-sm text-muted">
                     <span>
-                        variation <span className="font-mono text-ink">{shown.eq}</span>
+                        variation{" "}
+                        <span className="font-mono text-ink">{variationLabel(shown)}</span>
                         {" · "}
                         seed <span className="font-mono text-ink">{shown.seed}</span>
                     </span>
