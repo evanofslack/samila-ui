@@ -17,7 +17,7 @@ type ImageProps = {
 function downloadImage(image: GeneratedImage) {
     const link = document.createElement("a");
     link.href = image.url;
-    link.download = `samila-${image.params.eq}-${image.params.seed}.png`;
+    link.download = `samila-${image.params.eq}-${image.params.seed}-${image.size}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

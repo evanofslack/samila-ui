@@ -78,6 +78,22 @@ export const MARKERS: Option[] = Object.entries(MARKER_LABELS).map(([value, labe
 export const SPOT = { min: 0.01, max: 10 };
 export const ALPHA = { min: 0.01, max: 1 };
 export const ROTATION = { min: 0, max: 360 };
+export const SIZE = { min: 500, max: 4000, step: 500 };
+
+// the size the image needs on this screen: its displayed width in device pixels,
+// rounded up to a slider step and kept between 1000 and 2000
+const IMAGE_CSS_WIDTH = 700;
+export function autoSize(): number {
+    const width = Math.min(window.innerWidth, IMAGE_CSS_WIDTH) * (window.devicePixelRatio || 1);
+    const stepped = Math.ceil(width / SIZE.step) * SIZE.step;
+    return Math.min(2000, Math.max(1000, stepped));
+}
+
+// rough PNG size; it varies with the image, so only shown as an estimate
+export function estimateMB(size: number): string {
+    const mb = 0.55 * (size / 1000) ** 2;
+    return mb < 1 ? mb.toFixed(1) : String(Math.round(mb));
+}
 
 export const DEFAULT_PARAMS: GeneratorParams = {
     eq: 1,
@@ -91,6 +107,7 @@ export const DEFAULT_PARAMS: GeneratorParams = {
     spot: 0.5,
     alpha: 0.1,
     rotation: 0,
+    size: null,
 };
 
 // the API takes hex colours without the leading '#'
@@ -117,6 +134,10 @@ export function paramsQuery(params: GeneratorParams): URLSearchParams {
     if (params.cmap) {
         query.set("cmap", params.cmap);
     }
+    // auto stays out of links, so they suit whoever opens them
+    if (params.size !== null) {
+        query.set("size", String(params.size));
+    }
     return query;
 }
 
@@ -134,6 +155,11 @@ function readFloat(value: string | null, range: { min: number; max: number }) {
     }
     const n = Number(value);
     return Number.isFinite(n) ? Math.min(range.max, Math.max(range.min, n)) : undefined;
+}
+
+function readSize(value: string | null): number | undefined {
+    const n = readInt(value, SIZE.max);
+    return n !== undefined && n >= SIZE.min ? n : undefined;
 }
 
 function parseHex(value: string | null): string | undefined {
@@ -171,6 +197,7 @@ export function parseQuery(query: URLSearchParams): GeneratorParams | null {
         spot: readFloat(query.get("spot"), SPOT) ?? d.spot,
         alpha: readFloat(query.get("alpha"), ALPHA) ?? d.alpha,
         rotation: readFloat(query.get("rotation"), ROTATION) ?? d.rotation,
+        size: readSize(query.get("size")) ?? d.size,
     };
 }
 
