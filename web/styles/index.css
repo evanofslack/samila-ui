@@ -3,7 +3,6 @@
 @layer theme, base, mantine, components, utilities;
 @import "tailwindcss";
 @import "@mantine/core/styles.layer.css";
-@import "@mantine/carousel/styles.layer.css";
 @import "@mantine/notifications/styles.layer.css";
 
 /* dark: follows mantine's colour scheme attribute, not the media query */
