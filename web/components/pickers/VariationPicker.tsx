@@ -1,9 +1,21 @@
 import { useState } from "react";
-import { ActionIcon, Drawer, Popover, Select, Tooltip } from "@mantine/core";
+import {
+    ActionIcon,
+    Drawer,
+    NumberInput,
+    Popover,
+    SegmentedControl,
+    Select,
+    Tooltip,
+} from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { FiChevronLeft, FiChevronRight, FiShuffle } from "react-icons/fi";
+import { GiPerspectiveDiceSixFacesRandom } from "react-icons/gi";
 import { GeneratorParams } from "../../interfaces";
+import useRandomEquations from "../../hooks/useRandomEquations";
+import { MAX_SEED } from "../../lib/api";
 import { randomInt } from "../../lib/random";
+import { randomSeed } from "../../lib/randomize";
 import {
     EQUATIONS,
     fromEq,
@@ -22,23 +34,43 @@ type PickerProps = {
     onChange: (value: Variation) => void;
 };
 
+type EquationsProps = {
+    value: Variation & Pick<GeneratorParams, "fseed">;
+    onChange: (value: Partial<GeneratorParams>) => void;
+};
+
 const FUNCTION_OPTIONS = EQUATIONS.map((e) => ({
     value: String(e.id),
     label: `${e.id} · ${e.display}`,
 }));
 
-// the two equations of a variation, as f₁ and f₂
-export function Formulas({ f1, f2 }: { f1: number; f2: number }) {
+function FormulaLines({ f1, f2 }: { f1: string; f2: string }) {
     return (
         <div className="min-w-0 font-mono text-xs leading-relaxed text-muted">
-            <p className="truncate" title={EQUATIONS[f1].display}>
-                <span className="text-ink">f₁</span> = {EQUATIONS[f1].display}
+            <p className="truncate" title={f1}>
+                <span className="text-ink">f₁</span> = {f1}
             </p>
-            <p className="truncate" title={EQUATIONS[f2].display}>
-                <span className="text-ink">f₂</span> = {EQUATIONS[f2].display}
+            <p className="truncate" title={f2}>
+                <span className="text-ink">f₂</span> = {f2}
             </p>
         </div>
     );
+}
+
+// the two equations of a variation, as f₁ and f₂
+export function Formulas({ f1, f2 }: { f1: number; f2: number }) {
+    return <FormulaLines f1={EQUATIONS[f1].display} f2={EQUATIONS[f2].display} />;
+}
+
+// the two equations samila writes for a function seed
+export function RandomFormulas({ fseed }: { fseed: number }) {
+    const equations = useRandomEquations(fseed);
+    return <FormulaLines f1={equations?.f1 ?? "…"} f2={equations?.f2 ?? "…"} />;
+}
+
+// any image's equations: a variation's, or samila's own
+export function ShownFormulas({ f1, f2, fseed }: Pick<GeneratorParams, "f1" | "f2" | "fseed">) {
+    return fseed !== null ? <RandomFormulas fseed={fseed} /> : <Formulas f1={f1} f2={f2} />;
 }
 
 function Thumb({ eq, f1, f2, size }: Variation & { size: string }) {
@@ -130,15 +162,57 @@ function PickerBody({ value, onChange, columns, onPicked }: GridProps) {
     );
 }
 
-export default function VariationPicker({ value, onChange }: PickerProps) {
+function RandomPicker({ fseed, onChange }: { fseed: number; onChange: (fseed: number) => void }) {
+    return (
+        <div className="flex flex-col gap-2 rounded-sm border border-line p-2">
+            <div className="flex items-center gap-1.5">
+                <NumberInput
+                    aria-label="equation seed"
+                    value={fseed}
+                    min={0}
+                    max={MAX_SEED}
+                    allowDecimal={false}
+                    allowNegative={false}
+                    clampBehavior="strict"
+                    hideControls
+                    size="xs"
+                    className="flex-1"
+                    classNames={{ input: "font-mono" }}
+                    onChange={(value) => typeof value === "number" && onChange(value)}
+                />
+                <Tooltip label="new equations" withArrow>
+                    <ActionIcon
+                        variant="default"
+                        size="input-xs"
+                        aria-label="roll new equations"
+                        onClick={() => onChange(randomSeed())}
+                    >
+                        <GiPerspectiveDiceSixFacesRandom size="1.1rem" />
+                    </ActionIcon>
+                </Tooltip>
+            </div>
+            <RandomFormulas fseed={fseed} />
+        </div>
+    );
+}
+
+export default function VariationPicker({ value, onChange }: EquationsProps) {
     const [open, setOpen] = useState(false);
     const phone = useMediaQuery("(max-width: 1023px)");
+    const random = value.fseed !== null;
 
     // stepping from a hand-picked pair starts from the nearest numbered variation
     const step = (delta: number) => {
+        if (value.fseed !== null) {
+            onChange({ fseed: (value.fseed + delta + MAX_SEED + 1) % (MAX_SEED + 1) });
+            return;
+        }
         const from = value.eq ?? 0;
         onChange(fromEq((from + delta + MAX_EQ + 1) % (MAX_EQ + 1)));
     };
+
+    const shuffle = () =>
+        onChange(random ? { fseed: randomSeed() } : fromEq(randomInt(MAX_EQ + 1)));
 
     const trigger = (
         <button
@@ -167,16 +241,19 @@ export default function VariationPicker({ value, onChange }: PickerProps) {
     );
 
     return (
-        <div>
-            <div className="mb-1 flex items-center justify-between text-sm font-medium">
-                <Label text="variation" info={INFO.variation} />
+        <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between text-sm font-medium">
+                <Label
+                    text={random ? "random equations" : "variation"}
+                    info={random ? INFO.random : INFO.variation}
+                />
                 <span className="flex items-center">
                     <Tooltip label="previous" withArrow>
                         <ActionIcon
                             variant="subtle"
                             color="gray"
                             size="sm"
-                            aria-label="previous variation"
+                            aria-label="previous"
                             onClick={() => step(-1)}
                         >
                             <FiChevronLeft />
@@ -187,26 +264,36 @@ export default function VariationPicker({ value, onChange }: PickerProps) {
                             variant="subtle"
                             color="gray"
                             size="sm"
-                            aria-label="next variation"
+                            aria-label="next"
                             onClick={() => step(1)}
                         >
                             <FiChevronRight />
                         </ActionIcon>
                     </Tooltip>
-                    <Tooltip label="random variation" withArrow>
+                    <Tooltip label="shuffle" withArrow>
                         <ActionIcon
                             variant="subtle"
                             color="gray"
                             size="sm"
-                            aria-label="random variation"
-                            onClick={() => onChange(fromEq(randomInt(MAX_EQ + 1)))}
+                            aria-label={random ? "random equations" : "random variation"}
+                            onClick={shuffle}
                         >
                             <FiShuffle size="0.85rem" />
                         </ActionIcon>
                     </Tooltip>
                 </span>
             </div>
-            {phone ? (
+            <SegmentedControl
+                fullWidth
+                size="xs"
+                value={random ? "random" : "variations"}
+                onChange={(mode) => onChange({ fseed: mode === "random" ? randomSeed() : null })}
+                data={["variations", "random"]}
+                aria-label="where the equations come from"
+            />
+            {random && value.fseed !== null ? (
+                <RandomPicker fseed={value.fseed} onChange={(fseed) => onChange({ fseed })} />
+            ) : phone ? (
                 <>
                     {trigger}
                     <Drawer
