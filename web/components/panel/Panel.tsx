@@ -83,6 +83,8 @@ export default function Panel({ params, update, merge }: PanelProps) {
             onChange={setOpen}
             variant="default"
             chevronPosition="left"
+            // the same hairline above shape as between the other sections
+            className="border-t border-line"
             classNames={{
                 // plain headings: no hover fill, sections split by one hairline
                 control: "bg-transparent px-0 font-semibold hover:bg-transparent",
