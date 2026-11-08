@@ -42,11 +42,26 @@ function gridSide({ start, stop, step }: Grid): number {
     return Math.round((stop - start) / step);
 }
 
+// the inputs go through sin and cos, so the range reads in multiples of π
+const RANGE_PI = { min: 0.15, max: Math.floor(GRID.max / Math.PI / 0.05) * 0.05, step: 0.05 };
+
+// exactly ±π stays the default, so links leave it out; other values keep links short
+function snap(value: number): number {
+    return Math.abs(Math.abs(value) - Math.PI) < 1e-9
+        ? Math.sign(value) * Math.PI
+        : Number(value.toFixed(4));
+}
+
+function formatRange(multiple: number): string {
+    const rounded = Number(multiple.toFixed(2));
+    return rounded === 1 ? "±π" : `±${rounded}π`;
+}
+
 // the grid's half-width about its centre, keeping the density under the API's cap
 function withRange(grid: Grid, range: number): Grid {
     const centre = (grid.start + grid.stop) / 2;
-    const start = Math.max(GRID.min, centre - range);
-    const stop = Math.min(GRID.max, centre + range);
+    const start = snap(Math.max(GRID.min, centre - range));
+    const stop = snap(Math.min(GRID.max, centre + range));
     const side = Math.min(gridSide(grid), MAX_SIDE);
     return { start, stop, step: Number(((stop - start) / side).toPrecision(4)) };
 }
@@ -135,17 +150,15 @@ export default function Panel({ params, update, merge }: PanelProps) {
                 />
                 <ProjectionPicker value={params.proj} onChange={(proj) => update("proj", proj)} />
                 <MySlider
-                    title="range"
+                    title="grid range"
                     info={INFO.range}
-                    value={(params.stop - params.start) / 2}
-                    setValue={(range) => merge(withRange(params, range))}
-                    min={0.5}
-                    max={GRID.max}
-                    step={0.05}
-                    format={(range) => `±${range.toFixed(2)}`}
+                    value={(params.stop - params.start) / 2 / Math.PI}
+                    setValue={(multiple) => merge(withRange(params, multiple * Math.PI))}
+                    {...RANGE_PI}
+                    format={formatRange}
                 />
                 <MySlider
-                    title="detail"
+                    title="grid points"
                     info={INFO.detail}
                     value={gridSide(params)}
                     setValue={(side) => merge(withSide(params, side))}

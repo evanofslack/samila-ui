@@ -60,7 +60,8 @@ function randomGrid(): Pick<Params, "start" | "stop" | "step"> {
     if (Math.random() < 0.85) {
         return DEFAULT_GRID;
     }
-    const range = Number(randomFloat(1.5, 5).toFixed(2));
+    // a multiple of π, as the grid range slider shows it
+    const range = Number((Math.round(randomFloat(0.5, 1.6) / 0.05) * 0.05 * Math.PI).toFixed(4));
     return { start: -range, stop: range, step: Number(((2 * range) / 628).toFixed(5)) };
 }
 
