@@ -45,6 +45,11 @@ check: install
 prerender *args:
     cd api && uv run python scripts/prerender.py {{args}}
 
+# readme screenshots of the editor in light and dark, from the app on :8080 (just serve)
+screenshots url="http://localhost:8080": install
+    cd web && node scripts/screenshots.mjs {{url}}
+    cd api && uv run python -c "from pathlib import Path; from PIL import Image; [(Image.open(p).save(p.with_suffix('.webp'), quality=88, method=6), p.unlink()) for p in Path('../docs').glob('screenshot-*.png')]"
+
 # build the docker image
 docker:
     docker build -t evanofslack/samila:latest .
