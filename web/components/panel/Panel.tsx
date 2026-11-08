@@ -84,7 +84,9 @@ export default function Panel({ params, update, merge }: PanelProps) {
             variant="default"
             chevronPosition="left"
             classNames={{
-                control: "px-0 font-semibold",
+                // plain headings: no hover fill, sections split by one hairline
+                control: "bg-transparent px-0 font-semibold hover:bg-transparent",
+                chevron: "text-muted",
                 label: "py-3",
                 content: "px-0",
                 item: "border-line",
@@ -102,7 +104,11 @@ export default function Panel({ params, update, merge }: PanelProps) {
                 <ProjectionPicker value={params.proj} onChange={(proj) => update("proj", proj)} />
             </Section>
 
-            <Section value="color" title="color" onShuffle={() => merge(randomColors())}>
+            <Section
+                value="color"
+                title="color"
+                onShuffle={() => merge(randomColors(params.cmap !== null))}
+            >
                 <ColorPicker value={params} onChange={merge} />
             </Section>
 

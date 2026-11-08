@@ -41,10 +41,12 @@ export function randomSeed(): number {
     return randomInt(MAX_SEED + 1);
 }
 
-// mostly the curated palettes, sometimes a generated pair
-export function randomColors(): Pick<Params, "color" | "bg" | "cmap"> {
+// mostly the curated palettes, sometimes a generated pair; gradient picks a colormap instead
+export function randomColors(
+    gradient = Math.random() < 0.1,
+): Pick<Params, "color" | "bg" | "cmap"> {
     const { color, bg } = Math.random() < 0.75 ? pick(PALETTES) : generatedColors();
-    return { color, bg, cmap: Math.random() < 0.1 ? pick(CMAPS) : null };
+    return { color, bg, cmap: gradient ? pick(CMAPS) : null };
 }
 
 // the variation and how it's plotted; mostly from the curated shapes
