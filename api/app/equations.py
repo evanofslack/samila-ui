@@ -4,9 +4,12 @@ Every function scales one term by r = random.uniform(-1, 1), drawn per point fro
 seeded generator, which is what turns a smooth surface into a cloud of points.
 """
 
+import ast
+import inspect
 import math
 import random
 import re
+import textwrap
 from collections.abc import Callable
 from dataclasses import dataclass
 from itertools import combinations
@@ -92,11 +95,22 @@ def f19(x, y):
     return random.uniform(-1, 1) * y * math.cos(x) ** 3 + x * math.sin(x * y)
 
 
+def _expr(fn: Callable[[float, float], float]) -> str:
+    """The function's formula as a Python expression in x and y, as samila configs store it."""
+    body = ast.parse(textwrap.dedent(inspect.getsource(fn))).body[0].body[0]
+    assert isinstance(body, (ast.Assign, ast.Return)) and body.value is not None
+    return ast.unparse(body.value)
+
+
 @dataclass(frozen=True)
 class Equation:
     fn: Callable[[float, float], float]
     # the formula for people, with the random coefficient written as r
     display: str
+
+    @property
+    def expr(self) -> str:
+        return _expr(self.fn)
 
 
 EQUATIONS: list[Equation] = [

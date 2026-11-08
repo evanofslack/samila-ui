@@ -1,6 +1,7 @@
 import logging
 import random
 import time
+from dataclasses import dataclass
 from typing import Annotated, Literal
 
 import matplotlib
@@ -25,6 +26,7 @@ from app.render import (
     RenderTimeout,
     grid_points,
 )
+from app.samila_config import samila_config
 
 log = logging.getLogger(__name__)
 
@@ -79,14 +81,16 @@ def _invalid(detail: str) -> HTTPException:
     return HTTPException(status_code=422, detail=detail)
 
 
-@router.get(
-    "/image",
-    response_class=Response,
-    responses={200: {"content": {"image/png": {}}}, **ERRORS},
-    dependencies=[Depends(rate_limit)],
-)
-async def generative_image(
-    request: Request,
+@dataclass(frozen=True)
+class ImageRequest:
+    params: RenderParams
+    # the numbered variation, when the equations are one
+    eq: int | None
+    # whether the same request always gives the same image
+    fixed: bool
+
+
+def image_params(
     eq: Annotated[
         int | None,
         Query(ge=0, le=len(PAIRS) - 1, description="Variation (equation pair); random if unset"),
@@ -172,8 +176,8 @@ async def generative_image(
         int | None,
         Query(ge=MIN_SIZE, le=MAX_SIZE, description="Image height; use with width"),
     ] = None,
-) -> Response:
-    """Generate an image with Samila. The seed and equations are returned in headers."""
+) -> ImageRequest:
+    """The query parameters shared by /image and /config, checked and resolved."""
     if (f1 is None) != (f2 is None):
         raise _invalid("f1 and f2 must be given together")
     if f1 is not None and eq is not None:
@@ -200,7 +204,7 @@ async def generative_image(
     if width is None or height is None:
         width = height = size if size is not None else DEFAULT_SIZE
 
-    cacheable = seed is not None and (eq is not None or f1 is not None or fseed is not None)
+    fixed = seed is not None and (eq is not None or f1 is not None or fseed is not None)
     if fseed is not None:
         f1 = f2 = None
     elif f1 is None or f2 is None:
@@ -230,6 +234,21 @@ async def generative_image(
         width=width,
         height=height,
     )
+    return ImageRequest(params, eq, fixed)
+
+
+@router.get(
+    "/image",
+    response_class=Response,
+    responses={200: {"content": {"image/png": {}}}, **ERRORS},
+    dependencies=[Depends(rate_limit)],
+)
+async def generative_image(
+    request: Request, image: Annotated[ImageRequest, Depends(image_params)]
+) -> Response:
+    """Generate an image with Samila. The seed and equations are returned in headers."""
+    params, eq, cacheable = image.params, image.eq, image.fixed
+    f1, f2, fseed = params.f1, params.f2, params.fseed
 
     began = time.perf_counter()
     try:
@@ -259,3 +278,17 @@ async def generative_image(
             "Cache-Control": "public, max-age=31536000, immutable" if cacheable else "no-store",
         },
     )
+
+
+@router.get("/config", responses=ERRORS)
+async def samila_config_json(
+    image: Annotated[ImageRequest, Depends(image_params)], response: Response
+) -> dict:
+    """The samila config for an image, which GenerativeImage(config=...) loads in Python.
+
+    Takes the same parameters as /image; seed is required.
+    """
+    if image.params.seed is None:
+        raise _invalid("seed is required for a config")
+    response.headers["Cache-Control"] = "public, max-age=3600" if image.fixed else "no-store"
+    return samila_config(image.params)

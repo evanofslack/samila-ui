@@ -24,6 +24,7 @@ Interactive docs: <http://localhost:8080/api/docs>. Lint with
 | GET | `/api/equations` | The equations and the pair that makes each variation |
 | GET | `/api/equations/random/{fseed}` | The two equations samila writes for a function seed |
 | GET | `/api/colormaps` | Colormap names for `cmap` |
+| GET | `/api/config` | The samila config for an image, for `GenerativeImage(config=...)` |
 | GET | `/api/health` | `{"status": "ok"}` |
 | GET | `/api/docs`, `/api/openapi.json` | Swagger UI and schema (when `DOCS_ENABLED`) |
 
@@ -64,6 +65,21 @@ Conflicting parameters return 422 with a `detail` message.
 Variations 0–54 are the original pairs and keep their numbers; new equations only add
 variations at the end. `GET /api/equations` returns each equation's formula, with the random
 coefficient written as `r`, and `pairs[n]`, the two equations of variation `n`.
+
+### `GET /api/config`
+
+Takes the same parameters as `/api/image` (`seed` is required) and returns the image as a
+[samila config](https://github.com/sepandhaghighi/samila#config), with a `usage` list of the
+Python lines that render it:
+
+```python
+from samila import GenerativeImage
+
+g = GenerativeImage(config=open("config.json"))
+g.generate()
+g.plot()  # color=g.data1 for gradients, size=(w, h) for other shapes
+g.save_image("samila.png")
+```
 
 ### Errors
 
