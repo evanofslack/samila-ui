@@ -6,6 +6,24 @@ Generative art web app and HTTP API powered by [samila](https://github.com/sepan
 
 https://samila.evanslack.dev
 
+## screenshots
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-dark.webp">
+  <img src="docs/screenshot-light.webp" alt="The samila editor: a generated image next to its settings">
+</picture>
+
+<br>
+
+<p>
+  <img src="web/public/images/gallery/g0-sm.webp" width="16%" alt="">
+  <img src="web/public/images/gallery/g2-sm.webp" width="16%" alt="">
+  <img src="web/public/images/gallery/g10-sm.webp" width="16%" alt="">
+  <img src="web/public/images/gallery/g4-sm.webp" width="16%" alt="">
+  <img src="web/public/images/gallery/g17-sm.webp" width="16%" alt="">
+  <img src="web/public/images/gallery/g18-sm.webp" width="16%" alt="">
+</p>
+
 ## getting started
 
 Can run from a prebuilt container, `evanofslack/samila:latest`, which serves both the web app and
