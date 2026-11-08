@@ -67,16 +67,19 @@ def render_default(preset: dict) -> None:
         spot=preset["spot"],
         alpha=preset["alpha"],
         rotation=preset["rotation"],
-        size=DEFAULT_SIZE,
+        width=DEFAULT_SIZE,
+        height=DEFAULT_SIZE,
     )
-    png, _ = render(params)
+    png = render(params).png
     save_webp(png, IMAGES / "default.webp", DEFAULT_SIZE, quality=88)
 
 
 def render_thumb(eq: int) -> int:
     f1, f2 = PAIRS[eq]
-    params = RenderParams(f1=f1, f2=f2, seed=THUMB_SEED, size=THUMB_RENDER, **THUMB_STYLE)
-    png, _ = render(params)
+    params = RenderParams(
+        f1=f1, f2=f2, seed=THUMB_SEED, width=THUMB_RENDER, height=THUMB_RENDER, **THUMB_STYLE
+    )
+    png = render(params).png
     save_webp(png, THUMBS / f"v{eq}.webp", THUMB_SIZE, quality=80)
     return eq
 
