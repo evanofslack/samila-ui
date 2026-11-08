@@ -1,9 +1,10 @@
 import { ReactNode, useEffect, useState } from "react";
 import { FiCopy, FiExternalLink } from "react-icons/fi";
 import { GeneratorParams } from "../interfaces";
-import { curlCommand } from "../lib/api";
+import { curlCommand, isGradient, resolvedColors } from "../lib/api";
+import { DEFAULT_PARAMS } from "../lib/presets";
 import CopyIcon from "./CopyIcon";
-import { Formulas } from "./pickers/VariationPicker";
+import { ShownFormulas } from "./pickers/VariationPicker";
 
 type AboutProps = {
     // the image on screen, so the examples describe it
@@ -47,6 +48,15 @@ export default function About({ shown, size }: AboutProps) {
     }, []);
 
     const curl = curlCommand(origin, shown, size);
+    const colors = resolvedColors(shown);
+    const customGrid =
+        shown.start !== DEFAULT_PARAMS.start ||
+        shown.stop !== DEFAULT_PARAMS.stop ||
+        shown.step !== DEFAULT_PARAMS.step;
+    const swatch = (color: string) =>
+        color === "transparent"
+            ? "repeating-conic-gradient(#c9c6bf 0 25%, #fff 0 50%) 0 0 / 8px 8px"
+            : color;
 
     return (
         <section id="how-it-works" className="mx-auto max-w-7xl scroll-mt-16 px-4 pt-24 sm:px-6">
@@ -62,7 +72,21 @@ export default function About({ shown, size }: AboutProps) {
             </p>
 
             <div className="mt-10 grid gap-10 md:grid-cols-3 md:gap-8">
-                <Step n={1} title="Two equations" visual={<Formulas f1={shown.f1} f2={shown.f2} />}>
+                <Step
+                    n={1}
+                    title="Two equations"
+                    visual={
+                        <div className="flex flex-col gap-2">
+                            <ShownFormulas f1={shown.f1} f2={shown.f2} fseed={shown.fseed} />
+                            {customGrid && (
+                                <p className="font-mono text-xs text-muted">
+                                    x, y from {shown.start.toFixed(2)} to {shown.stop.toFixed(2)},
+                                    step {shown.step}
+                                </p>
+                            )}
+                        </div>
+                    }
+                >
                     A grid of points goes through two equations, f₁ and f₂.
                 </Step>
                 <Step
@@ -84,11 +108,15 @@ export default function About({ shown, size }: AboutProps) {
                         <div className="flex items-center gap-3 text-sm">
                             <span
                                 className="relative size-8 shrink-0 overflow-hidden rounded-full border border-line"
-                                style={{ background: shown.bg }}
+                                style={{ background: swatch(colors.bg) }}
                             >
                                 <span
                                     className="absolute inset-[30%] rounded-full"
-                                    style={{ background: shown.color }}
+                                    style={{
+                                        background: isGradient(shown)
+                                            ? `linear-gradient(135deg, ${(shown.colors ?? ["#440154", "#21918c", "#fde725"]).join(", ")})`
+                                            : swatch(colors.color),
+                                    }}
                                 />
                             </span>
                             <span className="font-mono text-muted">

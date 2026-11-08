@@ -1,5 +1,5 @@
 import { GeneratedImage } from "../interfaces";
-import { variationLabel } from "../lib/variations";
+import { equationsLabel } from "../lib/variations";
 
 type HistoryProps = {
     history: GeneratedImage[];
@@ -27,7 +27,7 @@ export default function HistoryStrip({ history, current, onRestore }: HistoryPro
                             type="button"
                             role="listitem"
                             aria-current={active}
-                            aria-label={`show variation ${variationLabel(entry.params)}, seed ${entry.params.seed}`}
+                            aria-label={`show ${equationsLabel(entry.params).join(" ")}, seed ${entry.params.seed}`}
                             onClick={() => onRestore(entry)}
                             className={`size-14 shrink-0 overflow-hidden rounded-sm border transition ${
                                 active

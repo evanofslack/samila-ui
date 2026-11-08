@@ -3,9 +3,9 @@ import Image from "next/image";
 import { ActionIcon, Loader, Tooltip } from "@mantine/core";
 import { FiCopy, FiDownload, FiLink, FiTerminal } from "react-icons/fi";
 import { GeneratedImage } from "../interfaces";
-import { ApiError, autoSize, curlCommand, paramsQuery } from "../lib/api";
+import { ApiError, autoSize, curlCommand, paramsQuery, renderQuery } from "../lib/api";
 import { DEFAULT_IMAGE, DEFAULT_PARAMS } from "../lib/presets";
-import { variationLabel } from "../lib/variations";
+import { equationsLabel } from "../lib/variations";
 import CopyIcon from "./CopyIcon";
 
 type ImageProps = {
@@ -29,21 +29,22 @@ function download(href: string, name: string) {
 // so its PNG comes from the API at the chosen size
 function downloadImage(image: GeneratedImage | null) {
     if (image) {
-        const name = variationLabel(image.params).replace(" × ", "-");
+        const name = equationsLabel(image.params).join("-").replace(" × ", "-");
         download(image.url, `samila-${name}-${image.params.seed}-${image.size}.png`);
         return;
     }
     const size = DEFAULT_PARAMS.size ?? autoSize();
-    const query = paramsQuery(DEFAULT_PARAMS);
-    query.set("size", String(size));
     download(
-        `/api/image?${query}`,
+        `/api/image?${renderQuery(DEFAULT_PARAMS, size)}`,
         `samila-${DEFAULT_PARAMS.eq}-${DEFAULT_PARAMS.seed}-${size}.png`,
     );
 }
 
 export default function SamilaImage({ image, loading, elapsed, error, onCancel }: ImageProps) {
     const shown = image?.params ?? DEFAULT_PARAMS;
+    const [kind, label] = equationsLabel(shown);
+    // the frame takes the image's shape, and never grows taller than the window below the header
+    const aspect = shown.aspect;
     // the page's address, known only in the browser
     const [origin, setOrigin] = useState("");
     const [page, setPage] = useState("");
@@ -54,15 +55,27 @@ export default function SamilaImage({ image, loading, elapsed, error, onCancel }
     }, []);
 
     return (
-        // on wide screens the square never grows taller than the window below the header
-        <div className="mx-auto flex w-full max-w-[min(100%,calc(100svh-240px))] min-w-0 flex-col">
-            <div className="relative aspect-square w-full overflow-hidden rounded-md border border-line bg-surface">
+        <div
+            className="mx-auto flex w-full min-w-0 flex-col"
+            style={{ maxWidth: `min(100%, calc((100svh - 240px) * ${aspect}))` }}
+        >
+            <div
+                className="relative w-full overflow-hidden rounded-md border border-line bg-surface"
+                style={{
+                    aspectRatio: aspect,
+                    // a checkerboard shows through a transparent background
+                    ...(shown.bg === "transparent" && {
+                        background:
+                            "repeating-conic-gradient(var(--sam-line) 0 25%, transparent 0 50%) 0 0 / 16px 16px",
+                    }),
+                }}
+            >
                 <Image
                     src={image?.url ?? DEFAULT_IMAGE}
-                    alt={`Samila generative art, variation ${variationLabel(shown)}, seed ${shown.seed}`}
+                    alt={`Samila generative art, ${kind} ${label}, seed ${shown.seed}`}
                     width={1400}
-                    height={1400}
-                    className={`h-auto w-full transition-opacity duration-300 ${loading ? "opacity-75" : ""}`}
+                    height={Math.round(1400 / aspect)}
+                    className={`size-full object-contain transition-opacity duration-300 ${loading ? "opacity-75" : ""}`}
                     priority
                 />
                 {loading && (
@@ -90,8 +103,7 @@ export default function SamilaImage({ image, loading, elapsed, error, onCancel }
             <div className="flex min-h-10 flex-row flex-wrap items-center justify-between gap-x-2 pt-1">
                 <div className="flex flex-row items-center gap-1 text-sm text-muted">
                     <span>
-                        variation{" "}
-                        <span className="font-mono text-ink">{variationLabel(shown)}</span>
+                        {kind} <span className="font-mono text-ink">{label}</span>
                         {" · "}
                         seed <span className="font-mono text-ink">{shown.seed}</span>
                     </span>
