@@ -52,4 +52,9 @@ export const INFO = {
     spot: "How big each point is.",
     opacity: "How see-through each point is.",
     resolution: "Image size in pixels. Bigger takes longer.",
+    random: "Samila writes two new equations from this number.",
+    range: "How far the grid of points reaches.",
+    detail: "More points look smoother but take longer.",
+    linewidth: "How thick each marker's outline is.",
+    shape: "The image's width to height.",
 };

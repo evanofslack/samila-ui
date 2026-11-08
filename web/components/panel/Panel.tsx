@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { Accordion, ActionIcon, Select, Tooltip } from "@mantine/core";
 import { FiShuffle } from "react-icons/fi";
 import { GeneratorParams } from "../../interfaces";
-import { ALPHA, MODES, ROTATION, SPOT } from "../../lib/api";
+import { ALPHA, GRID, isGradient, LINEWIDTH, MAX_SIDE, MODES, ROTATION, SPOT } from "../../lib/api";
 import { randomColors, randomPoints, randomShape } from "../../lib/randomize";
 import { INFO, Label } from "../Info";
 import MySlider from "../MySlider";
@@ -34,6 +34,36 @@ function spotToSlider(spot: number): number {
 function sliderToSpot(value: number): number {
     return Number((SPOT.min * 10 ** ((value / 100) * SPOT_DECADES)).toPrecision(2));
 }
+
+type Grid = Pick<GeneratorParams, "start" | "stop" | "step">;
+
+// points along each side of the grid
+function gridSide({ start, stop, step }: Grid): number {
+    return Math.round((stop - start) / step);
+}
+
+// the grid's half-width about its centre, keeping the density under the API's cap
+function withRange(grid: Grid, range: number): Grid {
+    const centre = (grid.start + grid.stop) / 2;
+    const start = Math.max(GRID.min, centre - range);
+    const stop = Math.min(GRID.max, centre + range);
+    const side = Math.min(gridSide(grid), MAX_SIDE);
+    return { start, stop, step: Number(((stop - start) / side).toPrecision(4)) };
+}
+
+function withSide(grid: Grid, side: number): Grid {
+    return { ...grid, step: Number(((grid.stop - grid.start) / side).toPrecision(4)) };
+}
+
+function formatPoints(side: number): string {
+    const points = side * side;
+    return points >= 1e6
+        ? `${(points / 1e6).toFixed(1)}M points`
+        : `${Math.round(points / 1e3)}k points`;
+}
+
+// markers drawn as lines, where the line width shows most
+const POINT_MARKERS = ["point", "pixel"];
 
 type SectionProps = {
     value: string;
@@ -104,12 +134,32 @@ export default function Panel({ params, update, merge }: PanelProps) {
                     onChange={(value) => value && update("mode", value)}
                 />
                 <ProjectionPicker value={params.proj} onChange={(proj) => update("proj", proj)} />
+                <MySlider
+                    title="range"
+                    info={INFO.range}
+                    value={(params.stop - params.start) / 2}
+                    setValue={(range) => merge(withRange(params, range))}
+                    min={0.5}
+                    max={GRID.max}
+                    step={0.05}
+                    format={(range) => `±${range.toFixed(2)}`}
+                />
+                <MySlider
+                    title="detail"
+                    info={INFO.detail}
+                    value={gridSide(params)}
+                    setValue={(side) => merge(withSide(params, side))}
+                    min={50}
+                    max={MAX_SIDE}
+                    step={2}
+                    format={formatPoints}
+                />
             </Section>
 
             <Section
                 value="color"
                 title="color"
-                onShuffle={() => merge(randomColors(params.cmap !== null))}
+                onShuffle={() => merge(randomColors(isGradient(params)))}
             >
                 <ColorPicker value={params} onChange={merge} />
             </Section>
@@ -139,6 +189,18 @@ export default function Panel({ params, update, merge }: PanelProps) {
                     step={0.01}
                     format={(value) => value.toFixed(2)}
                 />
+                {!POINT_MARKERS.includes(params.marker) && (
+                    <MySlider
+                        title="line width"
+                        info={INFO.linewidth}
+                        value={params.linewidth}
+                        setValue={(linewidth) => update("linewidth", linewidth)}
+                        min={LINEWIDTH.min}
+                        max={LINEWIDTH.max}
+                        step={0.1}
+                        format={(value) => value.toFixed(1)}
+                    />
+                )}
                 <MySlider
                     title="rotation"
                     value={params.rotation}
@@ -151,7 +213,12 @@ export default function Panel({ params, update, merge }: PanelProps) {
             </Section>
 
             <Section value="output" title="output">
-                <Resolution size={params.size} setSize={(size) => update("size", size)} />
+                <Resolution
+                    size={params.size}
+                    setSize={(size) => update("size", size)}
+                    aspect={params.aspect}
+                    setAspect={(aspect) => update("aspect", aspect)}
+                />
             </Section>
         </Accordion>
     );
