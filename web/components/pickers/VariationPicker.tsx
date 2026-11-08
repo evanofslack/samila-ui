@@ -97,42 +97,61 @@ function Thumb({ eq, f1, f2, size }: Variation & { size: string }) {
     );
 }
 
-type GridProps = PickerProps & { columns: string; onPicked: () => void };
+// columns, and a height that cuts the last visible row in half so the grid reads as
+// scrollable: with p-1 and gap-2, 4.5 rows of 5 come to 90cqw and 3.5 rows of 4 to 87.5cqw
+const LAYOUTS = {
+    phone: "grid-cols-4 max-h-[min(87.5cqw,55svh)]",
+    wide: "grid-cols-5 max-h-[min(90cqw,60svh)]",
+};
 
-function PickerBody({ value, onChange, columns, onPicked }: GridProps) {
+type GridProps = PickerProps & { layout: string; onPicked: () => void };
+
+function PickerBody({ value, onChange, layout, onPicked }: GridProps) {
     const [hovered, setHovered] = useState<number | null>(null);
     const preview = hovered !== null ? fromEq(hovered) : value;
+    // the bottom edge fades until the last row is in view
+    const [atEnd, setAtEnd] = useState(false);
 
     return (
         <div className="flex flex-col gap-3">
-            <div
-                className={`grid ${columns} max-h-[min(360px,50svh)] auto-rows-min content-start gap-2 overflow-y-auto p-1`}
-                onMouseLeave={() => setHovered(null)}
-            >
-                {PAIRS.map((_, eq) => (
-                    <button
-                        key={eq}
-                        type="button"
-                        aria-label={`variation ${eq}`}
-                        aria-pressed={value.eq === eq}
-                        onMouseEnter={() => setHovered(eq)}
-                        onFocus={() => setHovered(eq)}
-                        onClick={() => {
-                            onChange(fromEq(eq));
-                            onPicked();
-                        }}
-                        className={`relative block overflow-hidden rounded-sm outline-offset-2 transition-[outline-color] ${
-                            value.eq === eq
-                                ? "outline-2 outline-ink"
-                                : "outline-2 outline-transparent hover:outline-line-strong"
-                        }`}
-                    >
-                        <Thumb {...fromEq(eq)} size="aspect-square h-auto w-full" />
-                        <span className="absolute bottom-0.5 left-1 font-mono text-[10px] text-white/80">
-                            {eq}
-                        </span>
-                    </button>
-                ))}
+            <div className="@container">
+                <div
+                    className={`grid ${layout} auto-rows-min content-start gap-2 overflow-y-auto p-1 ${
+                        atEnd
+                            ? ""
+                            : "[mask-image:linear-gradient(to_bottom,black_calc(100%-48px),transparent)]"
+                    }`}
+                    onMouseLeave={() => setHovered(null)}
+                    onScroll={(event) => {
+                        const grid = event.currentTarget;
+                        setAtEnd(grid.scrollTop + grid.clientHeight >= grid.scrollHeight - 2);
+                    }}
+                >
+                    {PAIRS.map((_, eq) => (
+                        <button
+                            key={eq}
+                            type="button"
+                            aria-label={`variation ${eq}`}
+                            aria-pressed={value.eq === eq}
+                            onMouseEnter={() => setHovered(eq)}
+                            onFocus={() => setHovered(eq)}
+                            onClick={() => {
+                                onChange(fromEq(eq));
+                                onPicked();
+                            }}
+                            className={`relative block overflow-hidden rounded-sm outline-offset-2 transition-[outline-color] ${
+                                value.eq === eq
+                                    ? "outline-2 outline-ink"
+                                    : "outline-2 outline-transparent hover:outline-line-strong"
+                            }`}
+                        >
+                            <Thumb {...fromEq(eq)} size="aspect-square h-auto w-full" />
+                            <span className="absolute bottom-0.5 left-1 font-mono text-[10px] text-white/80">
+                                {eq}
+                            </span>
+                        </button>
+                    ))}
+                </div>
             </div>
             <div className="border-t border-line pt-3">
                 <p className="mb-1 text-xs text-muted">variation {variationLabel(preview)}</p>
@@ -235,7 +254,7 @@ export default function VariationPicker({ value, onChange }: EquationsProps) {
         <PickerBody
             value={value}
             onChange={onChange}
-            columns={phone ? "grid-cols-4" : "grid-cols-5"}
+            layout={phone ? LAYOUTS.phone : LAYOUTS.wide}
             onPicked={() => setOpen(false)}
         />
     );
