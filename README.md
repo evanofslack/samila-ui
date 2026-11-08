@@ -2,6 +2,8 @@
 
 Generative art web app and HTTP API powered by [samila](https://github.com/sepandhaghighi/samila), fastapi, and next.js
 
+## screenshots
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-dark.webp">
   <img src="docs/screenshot-light.webp" alt="The samila editor: a generated image next to its settings">
