@@ -10,14 +10,17 @@ type ColorProps = {
     description?: string;
 };
 
+// a colour can also be one of samila's names, shown in place of a value
 export default function ColorInput({ label, value, onChange, disabled, description }: ColorProps) {
+    const named = !value.startsWith("#");
     return (
         <MantineColorInput
             label={label}
             description={description}
-            value={value}
+            value={named ? "" : value}
+            placeholder={named ? value : undefined}
             onChange={onChange}
-            disabled={disabled}
+            disabled={disabled || named}
             format="hex"
             swatches={SWATCHES}
             swatchesPerRow={6}
