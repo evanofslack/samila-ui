@@ -36,17 +36,13 @@ export default function Header() {
             }`}
         >
             <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6">
-                <a href="/" className="text-lg font-bold tracking-tight">
+                <a href="/" className="text-xl font-bold tracking-tight">
                     samila
                 </a>
                 <nav aria-label="main" className="flex items-center gap-0.5 sm:gap-2">
-                    <NavLink
-                        href="#how-it-works"
-                        label="how it works"
-                        icon={<FiInfo size="1.1rem" />}
-                    />
+                    <NavLink href="#how-it-works" label="about" icon={<FiInfo size="1.1rem" />} />
                     <NavLink href="#gallery" label="gallery" icon={<FiGrid size="1.1rem" />} />
-                    <NavLink href="/api/docs" label="API" icon={<FiCode size="1.1rem" />} />
+                    <NavLink href="/api/docs" label="api" icon={<FiCode size="1.1rem" />} />
                     <a
                         href="https://github.com/evanofslack/samila-ui"
                         aria-label="source on GitHub"
