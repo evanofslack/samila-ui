@@ -16,7 +16,7 @@ export default function HistoryStrip({ history, current, onRestore }: HistoryPro
         <div className="mt-1">
             <p className="mb-1.5 text-xs text-muted">recent</p>
             <div
-                className="-mx-1 flex [scrollbar-width:none] gap-2 overflow-x-auto [mask-image:linear-gradient(to_right,black_calc(100%-2rem),transparent)] px-1 pt-0.5 pb-2"
+                className="-mx-1 flex [scrollbar-width:none] gap-2 overflow-x-auto [mask-image:linear-gradient(to_right,black_calc(100%-2rem),transparent)] px-1 pt-1 pb-2"
                 role="list"
             >
                 {history.map((entry) => {
@@ -31,7 +31,7 @@ export default function HistoryStrip({ history, current, onRestore }: HistoryPro
                             onClick={() => onRestore(entry)}
                             className={`size-14 shrink-0 overflow-hidden rounded-sm border transition ${
                                 active
-                                    ? "border-ink ring-2 ring-ink ring-offset-2 ring-offset-bg"
+                                    ? "border-ink outline-2 outline-offset-2 outline-ink"
                                     : "border-line opacity-80 hover:opacity-100"
                             }`}
                         >
