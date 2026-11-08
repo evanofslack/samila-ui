@@ -3,19 +3,27 @@ import random
 import time
 from typing import Annotated, Literal
 
+import matplotlib
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from samila import GenerateMode, Marker, Projection
 
 from app.equations import EQUATIONS, PAIRS, pair_index
 from app.ratelimit import rate_limit
 from app.render import (
+    DEFAULT_LINEWIDTH,
     DEFAULT_SIZE,
+    DEFAULT_START,
+    DEFAULT_STEP,
+    DEFAULT_STOP,
+    GRID_LIMIT,
+    MAX_POINTS,
     MAX_SEED,
     MAX_SIZE,
     MIN_SIZE,
     RendererBusy,
     RenderParams,
     RenderTimeout,
+    grid_points,
 )
 
 log = logging.getLogger(__name__)
@@ -47,15 +55,28 @@ CMAPS = (
 ProjectionName = Literal[*PROJECTIONS]
 ModeName = Literal[*MODES]
 MarkerName = Literal[*MARKERS]
-CmapName = Literal[*CMAPS]
 
-HEX = r"^[0-9a-fA-F]{6}$"
+HEX = r"[0-9a-fA-F]{6}"
+COLOR = rf"^({HEX}|complement)$"
+BACKGROUND = rf"^({HEX}|transparent|complement)$"
+COLORS = rf"^{HEX}(,{HEX}){{1,5}}$"
+# every colormap matplotlib knows, for cmap= beyond the curated few
+ALL_CMAPS = frozenset(matplotlib.colormaps)
 
 ERRORS = {
+    422: {"description": "Invalid or conflicting parameters"},
     429: {"description": "Rate limit exceeded (see Retry-After)"},
     503: {"description": "Renderer busy, try again later"},
     504: {"description": "Render timed out"},
 }
+
+
+def _color(value: str) -> str:
+    return value if value in ("transparent", "complement") else f"#{value}"
+
+
+def _invalid(detail: str) -> HTTPException:
+    return HTTPException(status_code=422, detail=detail)
 
 
 @router.get(
@@ -82,33 +103,107 @@ async def generative_image(
         int | None,
         Query(ge=0, le=len(EQUATIONS) - 1, description="Second equation; use with f1"),
     ] = None,
+    fseed: Annotated[
+        int | None,
+        Query(
+            ge=0,
+            le=MAX_SEED,
+            description="Let samila write two random equations from this seed, instead of "
+            "eq or f1 and f2 (see /api/equations/random/{fseed})",
+        ),
+    ] = None,
     seed: Annotated[int | None, Query(ge=0, le=MAX_SEED, description="Random if unset")] = None,
+    start: Annotated[
+        float,
+        Query(ge=-GRID_LIMIT, le=GRID_LIMIT, description="Start of the grid of points (x and y)"),
+    ] = DEFAULT_START,
+    stop: Annotated[
+        float, Query(ge=-GRID_LIMIT, le=GRID_LIMIT, description="End of the grid of points")
+    ] = DEFAULT_STOP,
+    step: Annotated[
+        float,
+        Query(
+            ge=0.002,
+            le=1,
+            description=f"Grid spacing; smaller is denser. At most {MAX_POINTS:,} points",
+        ),
+    ] = DEFAULT_STEP,
     proj: Annotated[ProjectionName, Query(description="Projection")] = "rectilinear",
     mode: Annotated[ModeName, Query(description="Generate mode")] = "f1_vs_f2",
     color: Annotated[
-        str, Query(pattern=HEX, description="Point color, hex without '#'")
+        str,
+        Query(pattern=COLOR, description="Point color, hex without '#', or 'complement' of bg"),
     ] = "000000",
     bg: Annotated[
-        str, Query(pattern=HEX, description="Background color, hex without '#'")
+        str,
+        Query(
+            pattern=BACKGROUND,
+            description="Background color, hex without '#', 'transparent', or 'complement' "
+            "of color",
+        ),
     ] = "ffffff",
     cmap: Annotated[
-        CmapName | None, Query(description="Gradient colormap; overrides color")
+        str | None,
+        Query(description="Gradient colormap, any matplotlib name (see /api/colormaps)"),
+    ] = None,
+    colors: Annotated[
+        str | None,
+        Query(
+            pattern=COLORS,
+            description="Custom gradient: 2 to 6 comma-separated hex colors, instead of cmap",
+        ),
     ] = None,
     marker: Annotated[MarkerName, Query(description="Marker shape")] = "point",
     spot: Annotated[float, Query(ge=0.01, le=10, description="Point size")] = 0.5,
     alpha: Annotated[float, Query(ge=0.01, le=1, description="Point opacity")] = 0.1,
+    linewidth: Annotated[
+        float, Query(ge=0, le=5, description="Marker outline width")
+    ] = DEFAULT_LINEWIDTH,
     rotation: Annotated[float, Query(ge=0, le=360, description="Rotation in degrees")] = 0.0,
     size: Annotated[
-        int, Query(ge=MIN_SIZE, le=MAX_SIZE, description="Image width and height in pixels")
-    ] = DEFAULT_SIZE,
+        int | None,
+        Query(ge=MIN_SIZE, le=MAX_SIZE, description="Width and height of a square image"),
+    ] = None,
+    width: Annotated[
+        int | None,
+        Query(ge=MIN_SIZE, le=MAX_SIZE, description="Image width; use with height"),
+    ] = None,
+    height: Annotated[
+        int | None,
+        Query(ge=MIN_SIZE, le=MAX_SIZE, description="Image height; use with width"),
+    ] = None,
 ) -> Response:
     """Generate an image with Samila. The seed and equations are returned in headers."""
     if (f1 is None) != (f2 is None):
-        raise HTTPException(status_code=422, detail="f1 and f2 must be given together")
+        raise _invalid("f1 and f2 must be given together")
     if f1 is not None and eq is not None:
-        raise HTTPException(status_code=422, detail="give either eq or f1 and f2, not both")
-    cacheable = seed is not None and (eq is not None or f1 is not None)
-    if f1 is None or f2 is None:
+        raise _invalid("give either eq or f1 and f2, not both")
+    if fseed is not None and (eq is not None or f1 is not None):
+        raise _invalid("give fseed instead of eq or f1 and f2, not with them")
+    if start >= stop:
+        raise _invalid("start must be less than stop")
+    if grid_points(start, stop, step) > MAX_POINTS:
+        raise _invalid(f"the grid has too many points (at most {MAX_POINTS:,}); raise step")
+    if cmap is not None and cmap not in ALL_CMAPS:
+        raise _invalid(f"unknown colormap {cmap!r} (see /api/colormaps)")
+    if cmap is not None and colors is not None:
+        raise _invalid("give either cmap or colors, not both")
+    gradient = cmap is not None or colors is not None
+    if color == "complement" and bg in ("complement", "transparent"):
+        raise _invalid("color can only complement a solid background")
+    if bg == "complement" and gradient:
+        raise _invalid("bg can only complement a solid color, not a gradient")
+    if (width is None) != (height is None):
+        raise _invalid("width and height must be given together")
+    if size is not None and width is not None:
+        raise _invalid("give either size or width and height, not both")
+    if width is None or height is None:
+        width = height = size if size is not None else DEFAULT_SIZE
+
+    cacheable = seed is not None and (eq is not None or f1 is not None or fseed is not None)
+    if fseed is not None:
+        f1 = f2 = None
+    elif f1 is None or f2 is None:
         if eq is None:
             eq = random.randrange(len(PAIRS))
         f1, f2 = PAIRS[eq]
@@ -117,38 +212,50 @@ async def generative_image(
     params = RenderParams(
         f1=f1,
         f2=f2,
+        fseed=fseed,
         seed=seed,
+        start=start,
+        stop=stop,
+        step=step,
         proj=proj,
         mode=mode,
-        color=f"#{color}",
-        bg=f"#{bg}",
-        cmap=cmap,
+        color=_color(color),
+        bg=_color(bg),
+        cmap=tuple(f"#{c}" for c in colors.split(",")) if colors else cmap,
         marker=marker,
         spot=spot,
         alpha=alpha,
+        linewidth=linewidth,
         rotation=rotation,
-        size=size,
+        width=width,
+        height=height,
     )
 
-    start = time.perf_counter()
+    began = time.perf_counter()
     try:
-        png, used_seed = await request.app.state.renderer.render(params)
+        result = await request.app.state.renderer.render(params)
     except RendererBusy as e:
         raise HTTPException(status_code=503, detail="Renderer busy, try again later") from e
     except RenderTimeout as e:
         raise HTTPException(status_code=504, detail="Render timed out") from e
-    duration = time.perf_counter() - start
-    log.info("render %s seed=%d duration=%.2fs", params, used_seed, duration)
+    duration = time.perf_counter() - began
+    log.info("render %s seed=%d duration=%.2fs", params, result.seed, duration)
 
-    return Response(
-        content=png,
-        media_type="image/png",
-        headers={
-            "X-Seed": str(used_seed),
+    if fseed is not None:
+        equations = {"X-Fseed": str(fseed)}
+    else:
+        equations = {
             "X-F1": str(f1),
             "X-F2": str(f2),
             # only when the pair is a numbered variation
             **({"X-Eq": str(eq)} if eq is not None else {}),
+        }
+    return Response(
+        content=result.png,
+        media_type="image/png",
+        headers={
+            "X-Seed": str(result.seed),
+            **equations,
             "Cache-Control": "public, max-age=31536000, immutable" if cacheable else "no-store",
         },
     )
