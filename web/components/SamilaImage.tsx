@@ -14,6 +14,10 @@ type ImageProps = {
     elapsed: number;
     error: ApiError | null;
     onCancel: () => void;
+    // the controls no longer match the image
+    stale: boolean;
+    onApply: () => void;
+    onUndo: () => void;
 };
 
 function download(href: string, name: string) {
@@ -40,7 +44,18 @@ function downloadImage(image: GeneratedImage | null) {
     );
 }
 
-export default function SamilaImage({ image, loading, elapsed, error, onCancel }: ImageProps) {
+export default function SamilaImage({
+    image,
+    loading,
+    elapsed,
+    error,
+    onCancel,
+    stale,
+    onApply,
+    onUndo,
+}: ImageProps) {
+    // an out of date image fades, so a change that hasn't rendered yet doesn't look ignored
+    const faded = loading ? "opacity-75" : stale ? "opacity-40" : "";
     const shown = image?.params ?? DEFAULT_PARAMS;
     const [kind, label] = equationsLabel(shown);
     // the frame takes the image's shape, and never grows taller than the window below the header
@@ -75,9 +90,37 @@ export default function SamilaImage({ image, loading, elapsed, error, onCancel }
                     alt={`Samila generative art, ${kind} ${label}, seed ${shown.seed}`}
                     width={1400}
                     height={Math.round(1400 / aspect)}
-                    className={`size-full object-contain transition-opacity duration-300 ${loading ? "opacity-75" : ""}`}
+                    className={`size-full object-contain transition-opacity duration-300 ${faded}`}
                     priority
                 />
+                {stale && !loading && (
+                    <>
+                        {/* clicking the faded image applies the changes too */}
+                        <button
+                            type="button"
+                            aria-label="apply changes"
+                            onClick={onApply}
+                            className="absolute inset-0 cursor-pointer"
+                        />
+                        <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full border border-line bg-surface/95 py-1 pr-1 pl-3 text-xs whitespace-nowrap shadow-sm backdrop-blur transition-all starting:translate-y-1 starting:opacity-0">
+                            <span>settings changed</span>
+                            <button
+                                type="button"
+                                onClick={onUndo}
+                                className="ml-1 rounded-full px-2 py-0.5 text-muted transition-colors hover:bg-ink/10 hover:text-ink"
+                            >
+                                undo
+                            </button>
+                            <button
+                                type="button"
+                                onClick={onApply}
+                                className="rounded-full bg-ink px-2.5 py-0.5 font-medium text-bg transition-opacity hover:opacity-85"
+                            >
+                                apply
+                            </button>
+                        </div>
+                    </>
+                )}
                 {loading && (
                     <>
                         <div className="absolute inset-x-0 top-0 h-0.5 overflow-hidden bg-ink/10">

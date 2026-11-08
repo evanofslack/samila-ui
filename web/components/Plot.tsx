@@ -48,6 +48,31 @@ type ActionsProps = {
     onSurprise: () => void;
 };
 
+type ApplyBarProps = {
+    loading: boolean;
+    onApply: () => void;
+    onUndo: () => void;
+};
+
+// apply or undo the changes, for when the top of the panel is out of sight
+function ApplyBar({ loading, onApply, onUndo }: ApplyBarProps) {
+    return (
+        <div className="flex flex-row gap-2">
+            <Button
+                onClick={onApply}
+                loading={loading}
+                className="flex-1"
+                leftSection={<span className="size-1.5 rounded-full bg-current" aria-hidden />}
+            >
+                apply changes
+            </Button>
+            <Button onClick={onUndo} variant="default" disabled={loading}>
+                undo
+            </Button>
+        </div>
+    );
+}
+
 // apply changes when the controls differ from the image, else a new image with a new seed
 function Actions({ dirty, locked, loading, onGenerate, onSurprise }: ActionsProps) {
     const label = dirty ? "apply changes" : "new image";
@@ -99,6 +124,9 @@ export default function Plot({ onShown, picked }: PlotProps) {
     const [params, setParams] = useState<GeneratorParams>(DEFAULT_PARAMS);
     const [locked, setLocked] = useState(false);
     const scrollPending = useRef(false);
+    // whether the panel's top buttons are on screen, so the apply bar doesn't repeat them
+    const topActions = useRef<HTMLDivElement>(null);
+    const [topVisible, setTopVisible] = useState(true);
     const { image, history, loading, elapsed, error, generate, cancel, restore, show } =
         useGenerator();
 
@@ -127,6 +155,26 @@ export default function Plot({ onShown, picked }: PlotProps) {
             run({ ...params, seed: randomSeed() });
         }
     }
+
+    function onApply() {
+        run(params);
+    }
+
+    function onUndo() {
+        setParams(shown);
+    }
+
+    useEffect(() => {
+        const node = topActions.current;
+        if (!node) {
+            return;
+        }
+        const observer = new IntersectionObserver(([entry]) => setTopVisible(entry.isIntersecting), {
+            rootMargin: "-56px 0px 0px 0px",
+        });
+        observer.observe(node);
+        return () => observer.disconnect();
+    }, []);
 
     function onSurprise() {
         run({ ...surpriseParams(), size: params.size, aspect: params.aspect });
@@ -194,6 +242,9 @@ export default function Plot({ onShown, picked }: PlotProps) {
                     elapsed={elapsed}
                     error={error}
                     onCancel={cancel}
+                    stale={dirty}
+                    onApply={onApply}
+                    onUndo={onUndo}
                 />
                 <HistoryStrip
                     history={history}
@@ -205,7 +256,9 @@ export default function Plot({ onShown, picked }: PlotProps) {
                 />
             </div>
             <div className="flex w-full flex-col gap-4 rounded-md border border-line bg-surface p-5">
-                <div className="hidden lg:block">{actions}</div>
+                <div ref={topActions} className="hidden lg:block">
+                    {actions}
+                </div>
                 <SeedField
                     seed={params.seed}
                     setSeed={(seed) => update("seed", seed)}
@@ -213,10 +266,15 @@ export default function Plot({ onShown, picked }: PlotProps) {
                     setLocked={setLocked}
                 />
                 <Panel params={params} update={update} merge={merge} />
+                {dirty && !topVisible && (
+                    <div className="sticky bottom-4 -mx-2 hidden rounded-md border border-line bg-surface/95 p-2 shadow-md backdrop-blur transition-all starting:translate-y-2 starting:opacity-0 lg:block">
+                        <ApplyBar loading={loading} onApply={onApply} onUndo={onUndo} />
+                    </div>
+                )}
             </div>
             {/* phones keep the actions in reach at the bottom of the screen */}
             <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/90 px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden">
-                {actions}
+                {dirty ? <ApplyBar loading={loading} onApply={onApply} onUndo={onUndo} /> : actions}
             </div>
         </div>
     );
