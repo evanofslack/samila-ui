@@ -15,21 +15,28 @@ const KEYS: (keyof GeneratorParams)[] = [
     "eq",
     "f1",
     "f2",
+    "fseed",
     "seed",
+    "start",
+    "stop",
+    "step",
     "proj",
     "mode",
     "color",
     "bg",
     "cmap",
+    "colors",
     "marker",
     "spot",
     "alpha",
+    "linewidth",
     "rotation",
     "size",
+    "aspect",
 ];
 
 function sameParams(a: GeneratorParams, b: GeneratorParams): boolean {
-    return KEYS.every((key) => a[key] === b[key]);
+    return KEYS.every((key) => String(a[key]) === String(b[key]));
 }
 
 type ActionsProps = {
@@ -117,7 +124,7 @@ export default function Plot({ onShown }: PlotProps) {
     }
 
     function onSurprise() {
-        run({ ...surpriseParams(), size: params.size });
+        run({ ...surpriseParams(), size: params.size, aspect: params.aspect });
     }
 
     // a link with params renders straight away, keeping its seed

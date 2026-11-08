@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { notifications } from "@mantine/notifications";
 import { GeneratedImage, GeneratorParams } from "../interfaces";
-import { ApiError, apiError, autoSize, NETWORK_ERROR, paramsQuery } from "../lib/api";
+import { ApiError, apiError, autoSize, NETWORK_ERROR, renderQuery } from "../lib/api";
 
 // renders kept for going back; each holds its PNG in memory as an object URL
 const HISTORY = 12;
@@ -67,8 +67,7 @@ export default function useGenerator() {
 
             try {
                 const size = params.size ?? autoSize();
-                const query = paramsQuery(params);
-                query.set("size", String(size));
+                const query = renderQuery(params, size);
                 const resp = await fetch(`/api/image?${query}`, {
                     signal: controller.signal,
                 });
@@ -84,10 +83,13 @@ export default function useGenerator() {
                     url: URL.createObjectURL(blob),
                     params: {
                         ...params,
-                        // X-Eq is only sent for a numbered variation
-                        eq: headerInt(resp, "X-Eq"),
-                        f1: headerInt(resp, "X-F1") ?? params.f1,
-                        f2: headerInt(resp, "X-F2") ?? params.f2,
+                        // random equations leave the variation as it was, for switching back
+                        ...(params.fseed === null && {
+                            // X-Eq is only sent for a numbered variation
+                            eq: headerInt(resp, "X-Eq"),
+                            f1: headerInt(resp, "X-F1") ?? params.f1,
+                            f2: headerInt(resp, "X-F2") ?? params.f2,
+                        }),
                         seed: headerInt(resp, "X-Seed") ?? params.seed ?? 0,
                     },
                     size,

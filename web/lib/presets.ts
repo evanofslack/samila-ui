@@ -7,7 +7,14 @@ import { fromEq } from "./variations";
 export const DEFAULT_PARAMS: GeneratorParams = {
     ...presets.default,
     ...fromEq(presets.default.eq),
+    fseed: null,
+    start: -Math.PI,
+    stop: Math.PI,
+    step: 0.01,
+    colors: null,
+    linewidth: 1.5,
     size: null,
+    aspect: 1,
 };
 export const DEFAULT_IMAGE = "/images/default.webp";
 
