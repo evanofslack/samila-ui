@@ -26,7 +26,9 @@ export default function useGenerator() {
     useEffect(() => {
         return () => {
             controllerRef.current?.abort();
-            historyRef.current.forEach((entry) => URL.revokeObjectURL(entry.url));
+            historyRef.current
+                .filter((entry) => entry.url.startsWith("blob:"))
+                .forEach((entry) => URL.revokeObjectURL(entry.url));
             historyRef.current = [];
         };
     }, []);
@@ -51,7 +53,9 @@ export default function useGenerator() {
 
     const remember = useCallback((entry: GeneratedImage) => {
         const next = [entry, ...historyRef.current];
-        next.slice(HISTORY).forEach((old) => URL.revokeObjectURL(old.url));
+        next.slice(HISTORY)
+            .filter((old) => old.url.startsWith("blob:"))
+            .forEach((old) => URL.revokeObjectURL(old.url));
         historyRef.current = next.slice(0, HISTORY);
         setHistory(historyRef.current);
         setImage(entry);
@@ -116,11 +120,23 @@ export default function useGenerator() {
         setLoading(false);
     }, []);
 
+    // show a pre-rendered image as if just rendered, so it joins the history
+    const show = useCallback(
+        (entry: GeneratedImage) => {
+            controllerRef.current?.abort();
+            controllerRef.current = null;
+            setLoading(false);
+            setError(null);
+            remember(entry);
+        },
+        [remember],
+    );
+
     // show an earlier render again, without asking the server
     const restore = useCallback((entry: GeneratedImage) => {
         setImage(entry);
         setError(null);
     }, []);
 
-    return { image, history, loading, elapsed, error, generate, cancel, restore };
+    return { image, history, loading, elapsed, error, generate, cancel, restore, show };
 }

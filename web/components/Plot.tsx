@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, Tooltip } from "@mantine/core";
 import { FiRefreshCw, FiShuffle } from "react-icons/fi";
 import { GeneratorParams } from "../interfaces";
 import { paramsQuery, parseQuery } from "../lib/api";
+import { GALLERY_SIZE, GalleryEntry } from "../lib/gallery";
 import { DEFAULT_PARAMS } from "../lib/presets";
 import { randomSeed, surpriseParams } from "../lib/randomize";
 import useGenerator from "../hooks/useGenerator";
@@ -90,12 +91,16 @@ function Actions({ dirty, locked, loading, onGenerate, onSurprise }: ActionsProp
 type PlotProps = {
     // told about each image shown, so the rest of the page can describe it
     onShown?: (params: GeneratorParams, size: number) => void;
+    // a gallery image to open; a new object each time one is picked
+    picked?: GalleryEntry | null;
 };
 
-export default function Plot({ onShown }: PlotProps) {
+export default function Plot({ onShown, picked }: PlotProps) {
     const [params, setParams] = useState<GeneratorParams>(DEFAULT_PARAMS);
     const [locked, setLocked] = useState(false);
-    const { image, history, loading, elapsed, error, generate, cancel, restore } = useGenerator();
+    const scrollPending = useRef(false);
+    const { image, history, loading, elapsed, error, generate, cancel, restore, show } =
+        useGenerator();
 
     // the image on screen: the pre-rendered default until the first render
     const shown = image?.params ?? DEFAULT_PARAMS;
@@ -135,6 +140,29 @@ export default function Plot({ onShown }: PlotProps) {
         }
     }, []);
 
+    // a gallery pick shows its full image straight away, with its settings in the panel
+    useEffect(() => {
+        if (!picked) {
+            return;
+        }
+        show({ url: picked.src, params: picked.params, size: GALLERY_SIZE });
+        setParams(picked.params);
+        scrollPending.current = true;
+    }, [picked]);
+
+    // scroll up once the picked image is laid out; firefox drops a smooth scroll whose
+    // target moves under it
+    useEffect(() => {
+        if (scrollPending.current) {
+            scrollPending.current = false;
+            requestAnimationFrame(() =>
+                document
+                    .getElementById("editor")
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+            );
+        }
+    }, [image]);
+
     // the address bar describes the image on screen
     useEffect(() => {
         if (image) {
@@ -155,7 +183,10 @@ export default function Plot({ onShown }: PlotProps) {
     );
 
     return (
-        <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] items-start gap-6 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-12">
+        <div
+            id="editor"
+            className="mx-auto grid max-w-7xl scroll-mt-20 grid-cols-[minmax(0,1fr)] items-start gap-6 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-12"
+        >
             <div className="lg:sticky lg:top-[72px]">
                 <SamilaImage
                     image={image}

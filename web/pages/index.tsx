@@ -4,6 +4,7 @@ import Plot from "../components/Plot";
 import About from "../components/About";
 import Gallery from "../components/Gallery";
 import { GeneratorParams } from "../interfaces";
+import { GalleryEntry } from "../lib/gallery";
 import { DEFAULT_PARAMS } from "../lib/presets";
 
 export default function IndexPage() {
@@ -12,6 +13,8 @@ export default function IndexPage() {
         params: DEFAULT_PARAMS,
         size: 1000,
     });
+    // a fresh object per click, so picking the same image twice opens it again
+    const [picked, setPicked] = useState<GalleryEntry | null>(null);
 
     return (
         <Layout title="Samila">
@@ -23,9 +26,9 @@ export default function IndexPage() {
                     Thousands of points rendered through two equations.
                 </p>
             </section>
-            <Plot onShown={(params, size) => setShown({ params, size })} />
+            <Plot onShown={(params, size) => setShown({ params, size })} picked={picked} />
             <About shown={shown.params} size={shown.size} />
-            <Gallery />
+            <Gallery onPick={(entry) => setPicked({ ...entry })} />
         </Layout>
     );
 }
