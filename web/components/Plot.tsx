@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Button, Tooltip } from "@mantine/core";
-import { useHotkeys } from "@mantine/hooks";
 import { FiRefreshCw, FiShuffle } from "react-icons/fi";
 import { GeneratorParams } from "../interfaces";
 import { paramsQuery, parseQuery } from "../lib/api";
@@ -47,9 +46,10 @@ function Actions({ dirty, locked, loading, onGenerate, onSurprise }: ActionsProp
     return (
         <div className="flex flex-row gap-2">
             <Tooltip
-                label={!dirty && locked ? "unlock the seed for a new image" : "enter"}
+                label="unlock the seed for a new image"
                 withArrow
                 openDelay={400}
+                disabled={dirty || !locked}
             >
                 <Button
                     onClick={onGenerate}
@@ -67,17 +67,15 @@ function Actions({ dirty, locked, loading, onGenerate, onSurprise }: ActionsProp
                     {label}
                 </Button>
             </Tooltip>
-            <Tooltip label="r" withArrow openDelay={400}>
-                <Button
-                    onClick={onSurprise}
-                    variant="default"
-                    disabled={loading}
-                    leftSection={<FiShuffle aria-hidden />}
-                    className="flex-1"
-                >
-                    surprise me
-                </Button>
-            </Tooltip>
+            <Button
+                onClick={onSurprise}
+                variant="default"
+                disabled={loading}
+                leftSection={<FiShuffle aria-hidden />}
+                className="flex-1"
+            >
+                surprise me
+            </Button>
         </div>
     );
 }
@@ -121,14 +119,6 @@ export default function Plot({ onShown }: PlotProps) {
     function onSurprise() {
         run({ ...surpriseParams(), size: params.size });
     }
-
-    useHotkeys(
-        [
-            ["Enter", () => !loading && onGenerate()],
-            ["r", () => !loading && onSurprise()],
-        ],
-        ["INPUT", "TEXTAREA", "SELECT", "BUTTON", "A"],
-    );
 
     // a link with params renders straight away, keeping its seed
     useEffect(() => {
