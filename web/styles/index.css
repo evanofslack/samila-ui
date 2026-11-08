@@ -3,13 +3,71 @@
 @layer theme, base, mantine, components, utilities;
 @import "tailwindcss";
 @import "@mantine/core/styles.layer.css";
-@import "@mantine/carousel/styles.layer.css";
 @import "@mantine/notifications/styles.layer.css";
 
-/* a visible keyboard focus ring everywhere */
+/* dark: follows mantine's colour scheme attribute, not the media query */
+@custom-variant dark (&:where([data-mantine-color-scheme="dark"], [data-mantine-color-scheme="dark"] *));
+
+/* neutral ink on paper, so the art carries the colour; dark is the gallery's midnight */
+:root {
+    --sam-bg: #f6f5f2;
+    --sam-surface: #ffffff;
+    --sam-ink: #16181d;
+    --sam-muted: #6b6f76;
+    --sam-line: #e3e1dc;
+    --sam-line-strong: #c9c6bf;
+}
+
+[data-mantine-color-scheme="dark"] {
+    --sam-bg: #0b0f1a;
+    --sam-surface: #121828;
+    --sam-ink: #e8e9ee;
+    --sam-muted: #8b90a0;
+    --sam-line: #232a3d;
+    --sam-line-strong: #343d55;
+}
+
+@theme inline {
+    --color-bg: var(--sam-bg);
+    --color-surface: var(--sam-surface);
+    --color-ink: var(--sam-ink);
+    --color-muted: var(--sam-muted);
+    --color-line: var(--sam-line);
+    --color-line-strong: var(--sam-line-strong);
+    --font-mono:
+        ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
 @layer base {
+    body {
+        background-color: var(--sam-bg);
+        color: var(--sam-ink);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* a visible keyboard focus ring everywhere */
     :focus-visible {
-        outline: 2px solid var(--mantine-color-dark-6);
+        outline: 2px solid var(--sam-ink);
         outline-offset: 2px;
+    }
+}
+
+/* an indeterminate bar that sweeps across while an image renders */
+@keyframes sam-progress {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(300%);
+    }
+}
+
+.sam-progress {
+    animation: sam-progress 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sam-progress {
+        animation-duration: 3s;
     }
 }

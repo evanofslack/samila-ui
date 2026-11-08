@@ -1,6 +1,10 @@
 import { GeneratorParams } from "../interfaces";
 import { CMAPS, MARKERS, MAX_EQ, MAX_SEED, MODES, PROJECTIONS } from "./api";
+import { PALETTES, SHAPES } from "./presets";
 import { pick, pickWeighted, randomFloat, randomInt } from "./random";
+import { fromEq } from "./variations";
+
+type Params = Omit<GeneratorParams, "size">;
 
 // hue 0..360, saturation and lightness 0..100, as #rrggbb
 function hsl(h: number, s: number, l: number): string {
@@ -16,7 +20,7 @@ function hsl(h: number, s: number, l: number): string {
 }
 
 // a line and background with enough contrast to read
-function randomColors(): { color: string; bg: string } {
+function generatedColors(): { color: string; bg: string } {
     const hue = randomFloat(0, 360);
     let dark: string;
     let light: string;
@@ -33,31 +37,28 @@ function randomColors(): { color: string; bg: string } {
     return Math.random() < 0.5 ? { color: dark, bg: light } : { color: light, bg: dark };
 }
 
-export function randomParams(): Omit<GeneratorParams, "size"> {
-    const otherMarkers = MARKERS.map((m) => m.value).filter((m) => m !== "point" && m !== "circle");
+export function randomSeed(): number {
+    return randomInt(MAX_SEED + 1);
+}
+
+// mostly the curated palettes, sometimes a generated pair
+export function randomColors(): Pick<Params, "color" | "bg" | "cmap"> {
+    const { color, bg } = Math.random() < 0.75 ? pick(PALETTES) : generatedColors();
+    return { color, bg, cmap: Math.random() < 0.1 ? pick(CMAPS) : null };
+}
+
+// the variation and how it's plotted; mostly from the curated shapes
+export function randomShape(): Pick<Params, "eq" | "f1" | "f2" | "mode" | "proj"> {
+    if (Math.random() < 0.6) {
+        const { eq, mode, proj } = pick(SHAPES);
+        return { ...fromEq(eq), mode, proj };
+    }
     const otherModes = MODES.map((m) => m.value).filter(
         (m) => m !== "f1_vs_f2" && m !== "f2_vs_f1",
     );
     const otherProjs = PROJECTIONS.filter((p) => p !== "rectilinear" && p !== "polar");
-    const marker = pickWeighted(
-        [
-            ["point", 0.5],
-            ["circle", 0.3],
-        ],
-        otherMarkers,
-    );
-    // points need a bigger spot than shaped markers to show
-    const spot = marker === "point" ? randomFloat(0.1, 1.5) : randomFloat(0.02, 0.3);
     return {
-        eq: randomInt(MAX_EQ + 1),
-        seed: randomInt(MAX_SEED + 1),
-        proj: pickWeighted(
-            [
-                ["rectilinear", 0.4],
-                ["polar", 0.35],
-            ],
-            otherProjs,
-        ),
+        ...fromEq(randomInt(MAX_EQ + 1)),
         mode: pickWeighted(
             [
                 ["f1_vs_f2", 0.45],
@@ -65,11 +66,40 @@ export function randomParams(): Omit<GeneratorParams, "size"> {
             ],
             otherModes,
         ),
-        ...randomColors(),
-        cmap: Math.random() < 0.25 ? pick(CMAPS) : null,
+        proj: pickWeighted(
+            [
+                ["rectilinear", 0.4],
+                ["polar", 0.35],
+            ],
+            otherProjs,
+        ),
+    };
+}
+
+export function randomPoints(): Pick<Params, "marker" | "spot" | "alpha" | "rotation"> {
+    const otherMarkers = MARKERS.map((m) => m.value).filter((m) => m !== "point" && m !== "circle");
+    const marker = pickWeighted(
+        [
+            ["point", 0.6],
+            ["circle", 0.2],
+        ],
+        otherMarkers,
+    );
+    // points need a bigger spot than shaped markers to show
+    const spot = marker === "point" ? randomFloat(0.2, 1.2) : randomFloat(0.02, 0.3);
+    return {
         marker,
         spot: Number(spot.toPrecision(2)),
-        alpha: Number(randomFloat(0.05, 0.3).toFixed(2)),
-        rotation: Math.random() < 0.7 ? 0 : randomInt(24) * 15,
+        alpha: Number(randomFloat(0.06, 0.22).toFixed(2)),
+        rotation: Math.random() < 0.8 ? 0 : randomInt(24) * 15,
     };
+}
+
+// a curated shape with its seed in a curated palette most of the time, else anything goes
+export function surpriseParams(): Params {
+    if (Math.random() < 0.7) {
+        const shape = pick(SHAPES);
+        return { ...shape, ...fromEq(shape.eq), ...randomColors(), cmap: null };
+    }
+    return { ...randomShape(), ...randomPoints(), ...randomColors(), seed: randomSeed() };
 }

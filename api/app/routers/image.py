@@ -6,7 +6,7 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from samila import GenerateMode, Marker, Projection
 
-from app.equations import combos
+from app.equations import EQUATIONS, PAIRS, pair_index
 from app.ratelimit import rate_limit
 from app.render import (
     DEFAULT_SIZE,
@@ -67,7 +67,20 @@ ERRORS = {
 async def generative_image(
     request: Request,
     eq: Annotated[
-        int | None, Query(ge=0, le=len(combos) - 1, description="Equation pair; random if unset")
+        int | None,
+        Query(ge=0, le=len(PAIRS) - 1, description="Variation (equation pair); random if unset"),
+    ] = None,
+    f1: Annotated[
+        int | None,
+        Query(
+            ge=0,
+            le=len(EQUATIONS) - 1,
+            description="First equation (see /api/equations); use with f2 instead of eq",
+        ),
+    ] = None,
+    f2: Annotated[
+        int | None,
+        Query(ge=0, le=len(EQUATIONS) - 1, description="Second equation; use with f1"),
     ] = None,
     seed: Annotated[int | None, Query(ge=0, le=MAX_SEED, description="Random if unset")] = None,
     proj: Annotated[ProjectionName, Query(description="Projection")] = "rectilinear",
@@ -89,12 +102,21 @@ async def generative_image(
         int, Query(ge=MIN_SIZE, le=MAX_SIZE, description="Image width and height in pixels")
     ] = DEFAULT_SIZE,
 ) -> Response:
-    """Generate an image with Samila. The seed and equation pair are returned in headers."""
-    cacheable = seed is not None and eq is not None
-    if eq is None:
-        eq = random.randrange(len(combos))
+    """Generate an image with Samila. The seed and equations are returned in headers."""
+    if (f1 is None) != (f2 is None):
+        raise HTTPException(status_code=422, detail="f1 and f2 must be given together")
+    if f1 is not None and eq is not None:
+        raise HTTPException(status_code=422, detail="give either eq or f1 and f2, not both")
+    cacheable = seed is not None and (eq is not None or f1 is not None)
+    if f1 is None or f2 is None:
+        if eq is None:
+            eq = random.randrange(len(PAIRS))
+        f1, f2 = PAIRS[eq]
+    else:
+        eq = pair_index(f1, f2)
     params = RenderParams(
-        eq=eq,
+        f1=f1,
+        f2=f2,
         seed=seed,
         proj=proj,
         mode=mode,
@@ -123,7 +145,10 @@ async def generative_image(
         media_type="image/png",
         headers={
             "X-Seed": str(used_seed),
-            "X-Eq": str(eq),
+            "X-F1": str(f1),
+            "X-F2": str(f2),
+            # only when the pair is a numbered variation
+            **({"X-Eq": str(eq)} if eq is not None else {}),
             "Cache-Control": "public, max-age=31536000, immutable" if cacheable else "no-store",
         },
     )

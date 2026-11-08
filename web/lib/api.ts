@@ -1,6 +1,8 @@
 import { GeneratorParams, Option } from "../interfaces";
+import { DEFAULT_PARAMS } from "./presets";
+import { fromEq, fromPair, MAX_EQ, MAX_FN } from "./variations";
 
-export const MAX_EQ = 54;
+export { EQUATIONS, MAX_EQ, PAIRS } from "./variations";
 export const MAX_SEED = 1048576;
 
 export const PROJECTIONS = ["rectilinear", "polar", "hammer", "aitoff", "lambert", "mollweide"];
@@ -82,7 +84,7 @@ export const SIZE = { min: 500, max: 4000, step: 500 };
 
 // the size the image needs on this screen: its displayed width in device pixels,
 // rounded up to a slider step and kept between 1000 and 2000
-const IMAGE_CSS_WIDTH = 700;
+const IMAGE_CSS_WIDTH = 800;
 export function autoSize(): number {
     const width = Math.min(window.innerWidth, IMAGE_CSS_WIDTH) * (window.devicePixelRatio || 1);
     const stepped = Math.ceil(width / SIZE.step) * SIZE.step;
@@ -95,21 +97,6 @@ export function estimateMB(size: number): string {
     return mb < 1 ? mb.toFixed(1) : String(Math.round(mb));
 }
 
-export const DEFAULT_PARAMS: GeneratorParams = {
-    eq: 1,
-    seed: null,
-    proj: "rectilinear",
-    mode: "f1_vs_f2",
-    color: "#000000",
-    bg: "#ffffff",
-    cmap: null,
-    marker: "point",
-    spot: 0.5,
-    alpha: 0.1,
-    rotation: 0,
-    size: null,
-};
-
 // the API takes hex colours without the leading '#'
 function hex(color: string): string {
     return color.replace(/^#/, "").toLowerCase();
@@ -118,7 +105,10 @@ function hex(color: string): string {
 // the query string for both the API and a shareable link
 export function paramsQuery(params: GeneratorParams): URLSearchParams {
     const query = new URLSearchParams({
-        eq: String(params.eq),
+        // a numbered variation by its number, any other pair by its equations
+        ...(params.eq !== null
+            ? { eq: String(params.eq) }
+            : { f1: String(params.f1), f2: String(params.f2) }),
         proj: params.proj,
         mode: params.mode,
         color: hex(params.color),
@@ -177,8 +167,17 @@ export function parseQuery(query: URLSearchParams): GeneratorParams | null {
         return null;
     }
     const d = DEFAULT_PARAMS;
+    const eq = readInt(query.get("eq"), MAX_EQ);
+    const f1 = readInt(query.get("f1"), MAX_FN);
+    const f2 = readInt(query.get("f2"), MAX_FN);
+    const variation =
+        eq !== undefined
+            ? fromEq(eq)
+            : f1 !== undefined && f2 !== undefined
+              ? fromPair(f1, f2)
+              : { eq: d.eq, f1: d.f1, f2: d.f2 };
     return {
-        eq: readInt(query.get("eq"), MAX_EQ) ?? d.eq,
+        ...variation,
         seed: readInt(query.get("seed"), MAX_SEED) ?? d.seed,
         proj: parseChoice(query.get("proj"), PROJECTIONS) ?? d.proj,
         mode:
@@ -199,6 +198,13 @@ export function parseQuery(query: URLSearchParams): GeneratorParams | null {
         rotation: readFloat(query.get("rotation"), ROTATION) ?? d.rotation,
         size: readSize(query.get("size")) ?? d.size,
     };
+}
+
+// a shell command that fetches the same image from the API
+export function curlCommand(origin: string, params: GeneratorParams, size: number): string {
+    const query = paramsQuery(params);
+    query.set("size", String(size));
+    return `curl -o samila.png "${origin}/api/image?${query}"`;
 }
 
 export type ApiError = {

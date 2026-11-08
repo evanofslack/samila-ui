@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from app.config import get_settings
 from app.ratelimit import RateLimiter
 from app.render import Renderer
-from app.routers import health, image
+from app.routers import equations, health, image
 
 settings = get_settings()
 
@@ -57,11 +57,12 @@ app.add_middleware(
     allow_origins=["*"],
     allow_methods=["GET"],
     allow_credentials=False,
-    expose_headers=["X-Seed", "X-Eq"],
+    expose_headers=["X-Seed", "X-Eq", "X-F1", "X-F2"],
 )
 
 app.include_router(health.router, prefix="/api")
 app.include_router(image.router, prefix="/api")
+app.include_router(equations.router, prefix="/api")
 
 # Mounted last so it never shadows the API routes.
 if settings.static_dir:

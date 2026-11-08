@@ -1,0 +1,499 @@
+{
+    "default": {
+        "eq": 82,
+        "seed": 894014,
+        "proj": "rectilinear",
+        "mode": "f1_vs_f2",
+        "color": "#d8acdf",
+        "bg": "#06122a",
+        "cmap": null,
+        "marker": "point",
+        "spot": 0.97,
+        "alpha": 0.19,
+        "rotation": 0
+    },
+    "shapes": [
+        {
+            "eq": 34,
+            "seed": 132344,
+            "proj": "rectilinear",
+            "mode": "f2_vs_f1",
+            "marker": "point",
+            "spot": 0.56,
+            "alpha": 0.16,
+            "rotation": 0
+        },
+        {
+            "eq": 53,
+            "seed": 196837,
+            "proj": "polar",
+            "mode": "f1f2_vs_f1",
+            "marker": "point",
+            "spot": 0.51,
+            "alpha": 0.15,
+            "rotation": 0
+        },
+        {
+            "eq": 141,
+            "seed": 488813,
+            "proj": "rectilinear",
+            "mode": "f2_vs_f1",
+            "marker": "point",
+            "spot": 0.81,
+            "alpha": 0.19,
+            "rotation": 0
+        },
+        {
+            "eq": 106,
+            "seed": 362822,
+            "proj": "rectilinear",
+            "mode": "f1f2_vs_f1",
+            "marker": "point",
+            "spot": 0.82,
+            "alpha": 0.17,
+            "rotation": 0
+        },
+        {
+            "eq": 94,
+            "seed": 1026961,
+            "proj": "hammer",
+            "mode": "f2_vs_f1",
+            "marker": "point",
+            "spot": 0.45,
+            "alpha": 0.18,
+            "rotation": 0
+        },
+        {
+            "eq": 51,
+            "seed": 486908,
+            "proj": "polar",
+            "mode": "f1_vs_f2",
+            "marker": "point",
+            "spot": 0.88,
+            "alpha": 0.12,
+            "rotation": 0
+        },
+        {
+            "eq": 149,
+            "seed": 379131,
+            "proj": "lambert",
+            "mode": "f1_vs_x1",
+            "marker": "point",
+            "spot": 0.84,
+            "alpha": 0.18,
+            "rotation": 0
+        },
+        {
+            "eq": 3,
+            "seed": 589712,
+            "proj": "rectilinear",
+            "mode": "f1_vs_f2",
+            "marker": "point",
+            "spot": 0.7,
+            "alpha": 0.12,
+            "rotation": 0
+        },
+        {
+            "eq": 161,
+            "seed": 945490,
+            "proj": "rectilinear",
+            "mode": "f2_vs_f1",
+            "marker": "point",
+            "spot": 0.52,
+            "alpha": 0.15,
+            "rotation": 0
+        },
+        {
+            "eq": 82,
+            "seed": 894014,
+            "proj": "rectilinear",
+            "mode": "f1_vs_f2",
+            "marker": "point",
+            "spot": 0.97,
+            "alpha": 0.19,
+            "rotation": 0
+        },
+        {
+            "eq": 78,
+            "seed": 148325,
+            "proj": "lambert",
+            "mode": "f1_vs_f2",
+            "marker": "point",
+            "spot": 0.95,
+            "alpha": 0.17,
+            "rotation": 0
+        },
+        {
+            "eq": 106,
+            "seed": 529233,
+            "proj": "rectilinear",
+            "mode": "f2_vs_f1",
+            "marker": "point",
+            "spot": 0.88,
+            "alpha": 0.15,
+            "rotation": 0
+        },
+        {
+            "eq": 55,
+            "seed": 966477,
+            "proj": "rectilinear",
+            "mode": "f1f2_vs_f1",
+            "marker": "point",
+            "spot": 0.98,
+            "alpha": 0.16,
+            "rotation": 0
+        },
+        {
+            "eq": 130,
+            "seed": 78482,
+            "proj": "rectilinear",
+            "mode": "f1_vs_f2",
+            "marker": "point",
+            "spot": 0.36,
+            "alpha": 0.16,
+            "rotation": 0
+        },
+        {
+            "eq": 140,
+            "seed": 721105,
+            "proj": "lambert",
+            "mode": "f2_vs_x2",
+            "marker": "point",
+            "spot": 0.63,
+            "alpha": 0.17,
+            "rotation": 0
+        },
+        {
+            "eq": 137,
+            "seed": 446626,
+            "proj": "rectilinear",
+            "mode": "f1_vs_f2",
+            "marker": "point",
+            "spot": 0.6,
+            "alpha": 0.11,
+            "rotation": 0
+        },
+        {
+            "eq": 86,
+            "seed": 713629,
+            "proj": "rectilinear",
+            "mode": "f1_vs_f2",
+            "marker": "point",
+            "spot": 0.96,
+            "alpha": 0.17,
+            "rotation": 0
+        },
+        {
+            "eq": 97,
+            "seed": 308970,
+            "proj": "aitoff",
+            "mode": "f1_vs_f2",
+            "marker": "point",
+            "spot": 0.69,
+            "alpha": 0.17,
+            "rotation": 0
+        },
+        {
+            "eq": 3,
+            "seed": 30509,
+            "proj": "rectilinear",
+            "mode": "f1_vs_f2",
+            "marker": "point",
+            "spot": 0.91,
+            "alpha": 0.08,
+            "rotation": 0
+        },
+        {
+            "eq": 61,
+            "seed": 882929,
+            "proj": "rectilinear",
+            "mode": "f2_vs_f1",
+            "marker": "point",
+            "spot": 0.74,
+            "alpha": 0.1,
+            "rotation": 0
+        },
+        {
+            "eq": 78,
+            "seed": 527608,
+            "proj": "polar",
+            "mode": "f2_vs_f1",
+            "marker": "point",
+            "spot": 0.66,
+            "alpha": 0.1,
+            "rotation": 0
+        },
+        {
+            "eq": 110,
+            "seed": 825296,
+            "proj": "aitoff",
+            "mode": "f2_vs_x2",
+            "marker": "point",
+            "spot": 0.61,
+            "alpha": 0.12,
+            "rotation": 0
+        },
+        {
+            "eq": 113,
+            "seed": 562541,
+            "proj": "lambert",
+            "mode": "f1f2_vs_f1",
+            "marker": "point",
+            "spot": 0.49,
+            "alpha": 0.19,
+            "rotation": 0
+        },
+        {
+            "eq": 97,
+            "seed": 888376,
+            "proj": "lambert",
+            "mode": "f2_vs_f1",
+            "marker": "point",
+            "spot": 0.65,
+            "alpha": 0.11,
+            "rotation": 0
+        },
+        {
+            "eq": 6,
+            "seed": 370608,
+            "proj": "rectilinear",
+            "mode": "f1_vs_f2",
+            "marker": "point",
+            "spot": 0.61,
+            "alpha": 0.2,
+            "rotation": 0
+        },
+        {
+            "eq": 102,
+            "seed": 967639,
+            "proj": "polar",
+            "mode": "f1_vs_f2",
+            "marker": "point",
+            "spot": 0.42,
+            "alpha": 0.14,
+            "rotation": 0
+        },
+        {
+            "eq": 42,
+            "seed": 562325,
+            "proj": "aitoff",
+            "mode": "f2_vs_f1",
+            "marker": "point",
+            "spot": 0.44,
+            "alpha": 0.18,
+            "rotation": 0
+        },
+        {
+            "eq": 11,
+            "seed": 553526,
+            "proj": "hammer",
+            "mode": "f2_vs_x2",
+            "marker": "point",
+            "spot": 0.76,
+            "alpha": 0.14,
+            "rotation": 0
+        },
+        {
+            "eq": 32,
+            "seed": 824081,
+            "proj": "polar",
+            "mode": "f1_vs_f2",
+            "marker": "point",
+            "spot": 0.9,
+            "alpha": 0.12,
+            "rotation": 0
+        },
+        {
+            "eq": 67,
+            "seed": 880291,
+            "proj": "polar",
+            "mode": "f2_vs_f1",
+            "marker": "point",
+            "spot": 0.97,
+            "alpha": 0.16,
+            "rotation": 0
+        },
+        {
+            "eq": 118,
+            "seed": 951808,
+            "proj": "rectilinear",
+            "mode": "f2_vs_f1",
+            "marker": "point",
+            "spot": 0.37,
+            "alpha": 0.19,
+            "rotation": 0
+        },
+        {
+            "eq": 134,
+            "seed": 380056,
+            "proj": "lambert",
+            "mode": "f2_vs_f1",
+            "marker": "point",
+            "spot": 0.58,
+            "alpha": 0.08,
+            "rotation": 0
+        },
+        {
+            "eq": 105,
+            "seed": 212151,
+            "proj": "rectilinear",
+            "mode": "f1_vs_f2",
+            "marker": "point",
+            "spot": 0.82,
+            "alpha": 0.18,
+            "rotation": 0
+        },
+        {
+            "eq": 18,
+            "seed": 11174,
+            "proj": "rectilinear",
+            "mode": "f1_vs_f2",
+            "marker": "point",
+            "spot": 0.95,
+            "alpha": 0.09,
+            "rotation": 0
+        },
+        {
+            "eq": 125,
+            "seed": 403406,
+            "proj": "rectilinear",
+            "mode": "f1_vs_f2",
+            "marker": "point",
+            "spot": 0.77,
+            "alpha": 0.1,
+            "rotation": 0
+        },
+        {
+            "eq": 88,
+            "seed": 828464,
+            "proj": "lambert",
+            "mode": "f1_vs_f2",
+            "marker": "point",
+            "spot": 0.3,
+            "alpha": 0.15,
+            "rotation": 0
+        },
+        {
+            "eq": 134,
+            "seed": 601858,
+            "proj": "rectilinear",
+            "mode": "f2_vs_f1",
+            "marker": "point",
+            "spot": 0.96,
+            "alpha": 0.17,
+            "rotation": 0
+        },
+        {
+            "eq": 24,
+            "seed": 689635,
+            "proj": "polar",
+            "mode": "f2_vs_f1",
+            "marker": "point",
+            "spot": 0.41,
+            "alpha": 0.19,
+            "rotation": 0
+        }
+    ],
+    "palettes": [
+        {
+            "name": "midnight · lavender",
+            "color": "#d8acdf",
+            "bg": "#06122a"
+        },
+        {
+            "name": "teal · mint",
+            "color": "#ddf7f7",
+            "bg": "#0f5952"
+        },
+        {
+            "name": "navy · white",
+            "color": "#eff2f2",
+            "bg": "#103b68"
+        },
+        {
+            "name": "deep teal · sage",
+            "color": "#96e5a1",
+            "bg": "#073c53"
+        },
+        {
+            "name": "forest · aqua",
+            "color": "#13eecf",
+            "bg": "#042a09"
+        },
+        {
+            "name": "oxblood · cream",
+            "color": "#f1e4cf",
+            "bg": "#660b0a"
+        },
+        {
+            "name": "plum · lime",
+            "color": "#ebf358",
+            "bg": "#400a57"
+        },
+        {
+            "name": "maroon · cyan",
+            "color": "#56e1f2",
+            "bg": "#470c0b"
+        },
+        {
+            "name": "magenta · ice",
+            "color": "#66eff4",
+            "bg": "#621160"
+        },
+        {
+            "name": "graphite · lemon",
+            "color": "#f2f14d",
+            "bg": "#4c4c4c"
+        },
+        {
+            "name": "charcoal · pink",
+            "color": "#eedeec",
+            "bg": "#333333"
+        },
+        {
+            "name": "ink · paper",
+            "color": "#000000",
+            "bg": "#ffffff"
+        },
+        {
+            "name": "paper · ink",
+            "color": "#ffffff",
+            "bg": "#000000"
+        },
+        {
+            "name": "blush · cyan",
+            "color": "#04bbd2",
+            "bg": "#ffeff0"
+        },
+        {
+            "name": "tangerine · butter",
+            "color": "#ffefae",
+            "bg": "#fda74e"
+        },
+        {
+            "name": "sand · crimson",
+            "color": "#a71d23",
+            "bg": "#f6d6aa"
+        },
+        {
+            "name": "aqua · deep teal",
+            "color": "#05484d",
+            "bg": "#94f7f1"
+        },
+        {
+            "name": "fog · oxblood",
+            "color": "#7e0302",
+            "bg": "#e3e3e3"
+        },
+        {
+            "name": "mint · aubergine",
+            "color": "#361d4d",
+            "bg": "#e3f6f2"
+        },
+        {
+            "name": "cream · magenta",
+            "color": "#920076",
+            "bg": "#ffeed9"
+        }
+    ]
+}
