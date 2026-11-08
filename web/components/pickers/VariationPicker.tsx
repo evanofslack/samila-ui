@@ -53,11 +53,14 @@ function Thumb({ eq, f1, f2, size }: Variation & { size: string }) {
         );
     }
     return (
+        // width and height give the image its square shape before it loads, and it loads
+        // eagerly: firefox collapsed the lazy, unsized thumbnails into thin lines
         <img
             src={thumbnail(eq)}
             alt=""
-            loading="lazy"
-            className={`${size} shrink-0 rounded-sm bg-[#141a2a]`}
+            width={120}
+            height={120}
+            className={`${size} block shrink-0 rounded-sm bg-[#141a2a]`}
         />
     );
 }
@@ -71,7 +74,7 @@ function PickerBody({ value, onChange, columns, onPicked }: GridProps) {
     return (
         <div className="flex flex-col gap-3">
             <div
-                className={`grid ${columns} max-h-[min(360px,50svh)] gap-1.5 overflow-y-auto pr-1`}
+                className={`grid ${columns} max-h-[min(360px,50svh)] auto-rows-min content-start gap-2 overflow-y-auto p-1`}
                 onMouseLeave={() => setHovered(null)}
             >
                 {PAIRS.map((_, eq) => (
@@ -86,13 +89,13 @@ function PickerBody({ value, onChange, columns, onPicked }: GridProps) {
                             onChange(fromEq(eq));
                             onPicked();
                         }}
-                        className={`relative overflow-hidden rounded-sm border-2 transition-colors ${
+                        className={`relative block overflow-hidden rounded-sm outline-offset-2 transition-[outline-color] ${
                             value.eq === eq
-                                ? "border-ink"
-                                : "border-transparent hover:border-line-strong"
+                                ? "outline-2 outline-ink"
+                                : "outline-2 outline-transparent hover:outline-line-strong"
                         }`}
                     >
-                        <Thumb {...fromEq(eq)} size="aspect-square w-full" />
+                        <Thumb {...fromEq(eq)} size="aspect-square h-auto w-full" />
                         <span className="absolute bottom-0.5 left-1 font-mono text-[10px] text-white/80">
                             {eq}
                         </span>
