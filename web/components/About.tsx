@@ -1,9 +1,10 @@
 import { ReactNode, useEffect, useState } from "react";
 import { FiCopy, FiExternalLink } from "react-icons/fi";
 import { GeneratorParams } from "../interfaces";
-import { curlCommand } from "../lib/api";
+import { curlCommand, isGradient, resolvedColors } from "../lib/api";
+import { DEFAULT_PARAMS } from "../lib/presets";
 import CopyIcon from "./CopyIcon";
-import { Formulas } from "./pickers/VariationPicker";
+import { ShownFormulas } from "./pickers/VariationPicker";
 
 type AboutProps = {
     // the image on screen, so the examples describe it
@@ -47,11 +48,20 @@ export default function About({ shown, size }: AboutProps) {
     }, []);
 
     const curl = curlCommand(origin, shown, size);
+    const colors = resolvedColors(shown);
+    const customGrid =
+        shown.start !== DEFAULT_PARAMS.start ||
+        shown.stop !== DEFAULT_PARAMS.stop ||
+        shown.step !== DEFAULT_PARAMS.step;
+    const swatch = (color: string) =>
+        color === "transparent"
+            ? "repeating-conic-gradient(#c9c6bf 0 25%, #fff 0 50%) 0 0 / 8px 8px"
+            : color;
 
     return (
         <section id="how-it-works" className="mx-auto max-w-7xl scroll-mt-16 px-4 pt-24 sm:px-6">
             <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">How it works</h2>
-            <p className="mt-2 max-w-xl text-muted">
+            <p className="mt-2 text-muted sm:whitespace-nowrap">
                 <a
                     href="https://github.com/sepandhaghighi/samila"
                     className="text-ink underline underline-offset-2"
@@ -62,9 +72,22 @@ export default function About({ shown, size }: AboutProps) {
             </p>
 
             <div className="mt-10 grid gap-10 md:grid-cols-3 md:gap-8">
-                <Step n={1} title="Two equations" visual={<Formulas f1={shown.f1} f2={shown.f2} />}>
-                    A grid of points (x, y) goes through two equations, f₁ and f₂. The variation
-                    picks which two.
+                <Step
+                    n={1}
+                    title="Two equations"
+                    visual={
+                        <div className="flex flex-col gap-2">
+                            <ShownFormulas f1={shown.f1} f2={shown.f2} fseed={shown.fseed} />
+                            {customGrid && (
+                                <p className="font-mono text-xs text-muted">
+                                    x, y from {shown.start.toFixed(2)} to {shown.stop.toFixed(2)},
+                                    step {shown.step}
+                                </p>
+                            )}
+                        </div>
+                    }
+                >
+                    A grid of points goes through two equations, f₁ and f₂.
                 </Step>
                 <Step
                     n={2}
@@ -76,8 +99,7 @@ export default function About({ shown, size }: AboutProps) {
                         </p>
                     }
                 >
-                    Each equation scales one term by r, a random number for every point. The seed
-                    fixes those numbers, so the same seed always gives the same image.
+                    A random number nudges every point. The same seed gives the same image.
                 </Step>
                 <Step
                     n={3}
@@ -86,11 +108,15 @@ export default function About({ shown, size }: AboutProps) {
                         <div className="flex items-center gap-3 text-sm">
                             <span
                                 className="relative size-8 shrink-0 overflow-hidden rounded-full border border-line"
-                                style={{ background: shown.bg }}
+                                style={{ background: swatch(colors.bg) }}
                             >
                                 <span
                                     className="absolute inset-[30%] rounded-full"
-                                    style={{ background: shown.color }}
+                                    style={{
+                                        background: isGradient(shown)
+                                            ? `linear-gradient(135deg, ${(shown.colors ?? ["#440154", "#21918c", "#fde725"]).join(", ")})`
+                                            : swatch(colors.color),
+                                    }}
                                 />
                             </span>
                             <span className="font-mono text-muted">
@@ -99,8 +125,7 @@ export default function About({ shown, size }: AboutProps) {
                         </div>
                     }
                 >
-                    The results are plotted against each other with matplotlib, in the projection,
-                    colours and marker you choose.
+                    The points are plotted with matplotlib in your colors and shape.
                 </Step>
             </div>
 
@@ -108,8 +133,8 @@ export default function About({ shown, size }: AboutProps) {
                 <div>
                     <h3 className="text-xl font-semibold tracking-tight sm:text-2xl">A free API</h3>
                     <p className="mt-2 text-muted">
-                        Every image on this page comes from a public HTTP API you can call from your
-                        own projects. This is the request for the image above.
+                        Every image here comes from a free API. This is the request for the image
+                        above.
                     </p>
                     <a
                         href="/api/docs"

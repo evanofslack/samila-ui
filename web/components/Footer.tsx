@@ -15,7 +15,7 @@ export default function Footer() {
                 </p>
                 <div className="flex items-center gap-5">
                     <a href="/api/docs" className="transition-opacity hover:opacity-60">
-                        API
+                        api
                     </a>
                     <a
                         href="https://github.com/evanofslack/samila-ui"

@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { Accordion, ActionIcon, Select, Tooltip } from "@mantine/core";
 import { FiShuffle } from "react-icons/fi";
 import { GeneratorParams } from "../../interfaces";
-import { ALPHA, MODES, ROTATION, SPOT } from "../../lib/api";
+import { ALPHA, GRID, isGradient, LINEWIDTH, MAX_SIDE, MODES, ROTATION, SPOT } from "../../lib/api";
 import { randomColors, randomPoints, randomShape } from "../../lib/randomize";
 import { INFO, Label } from "../Info";
 import MySlider from "../MySlider";
@@ -34,6 +34,51 @@ function spotToSlider(spot: number): number {
 function sliderToSpot(value: number): number {
     return Number((SPOT.min * 10 ** ((value / 100) * SPOT_DECADES)).toPrecision(2));
 }
+
+type Grid = Pick<GeneratorParams, "start" | "stop" | "step">;
+
+// points along each side of the grid
+function gridSide({ start, stop, step }: Grid): number {
+    return Math.round((stop - start) / step);
+}
+
+// the inputs go through sin and cos, so the range reads in multiples of π
+const RANGE_PI = { min: 0.15, max: Math.floor(GRID.max / Math.PI / 0.05) * 0.05, step: 0.05 };
+
+// exactly ±π stays the default, so links leave it out; other values keep links short
+function snap(value: number): number {
+    return Math.abs(Math.abs(value) - Math.PI) < 1e-9
+        ? Math.sign(value) * Math.PI
+        : Number(value.toFixed(4));
+}
+
+function formatRange(multiple: number): string {
+    const rounded = Number(multiple.toFixed(2));
+    return rounded === 1 ? "±π" : `±${rounded}π`;
+}
+
+// the grid's half-width about its centre, keeping the density under the API's cap
+function withRange(grid: Grid, range: number): Grid {
+    const centre = (grid.start + grid.stop) / 2;
+    const start = snap(Math.max(GRID.min, centre - range));
+    const stop = snap(Math.min(GRID.max, centre + range));
+    const side = Math.min(gridSide(grid), MAX_SIDE);
+    return { start, stop, step: Number(((stop - start) / side).toPrecision(4)) };
+}
+
+function withSide(grid: Grid, side: number): Grid {
+    return { ...grid, step: Number(((grid.stop - grid.start) / side).toPrecision(4)) };
+}
+
+function formatPoints(side: number): string {
+    const points = side * side;
+    return points >= 1e6
+        ? `${(points / 1e6).toFixed(1)}M points`
+        : `${Math.round(points / 1e3)}k points`;
+}
+
+// markers drawn as lines, where the line width shows most
+const POINT_MARKERS = ["point", "pixel"];
 
 type SectionProps = {
     value: string;
@@ -83,8 +128,12 @@ export default function Panel({ params, update, merge }: PanelProps) {
             onChange={setOpen}
             variant="default"
             chevronPosition="left"
+            // the same hairline above shape as between the other sections
+            className="border-t border-line"
             classNames={{
-                control: "px-0 font-semibold",
+                // plain headings: no hover fill, sections split by one hairline
+                control: "bg-transparent px-0 font-semibold hover:bg-transparent",
+                chevron: "text-muted",
                 label: "py-3",
                 content: "px-0",
                 item: "border-line",
@@ -100,9 +149,31 @@ export default function Panel({ params, update, merge }: PanelProps) {
                     onChange={(value) => value && update("mode", value)}
                 />
                 <ProjectionPicker value={params.proj} onChange={(proj) => update("proj", proj)} />
+                <MySlider
+                    title="grid range"
+                    info={INFO.range}
+                    value={(params.stop - params.start) / 2 / Math.PI}
+                    setValue={(multiple) => merge(withRange(params, multiple * Math.PI))}
+                    {...RANGE_PI}
+                    format={formatRange}
+                />
+                <MySlider
+                    title="grid points"
+                    info={INFO.detail}
+                    value={gridSide(params)}
+                    setValue={(side) => merge(withSide(params, side))}
+                    min={50}
+                    max={MAX_SIDE}
+                    step={2}
+                    format={formatPoints}
+                />
             </Section>
 
-            <Section value="color" title="color" onShuffle={() => merge(randomColors())}>
+            <Section
+                value="color"
+                title="color"
+                onShuffle={() => merge(randomColors(isGradient(params)))}
+            >
                 <ColorPicker value={params} onChange={merge} />
             </Section>
 
@@ -131,6 +202,18 @@ export default function Panel({ params, update, merge }: PanelProps) {
                     step={0.01}
                     format={(value) => value.toFixed(2)}
                 />
+                {!POINT_MARKERS.includes(params.marker) && (
+                    <MySlider
+                        title="line width"
+                        info={INFO.linewidth}
+                        value={params.linewidth}
+                        setValue={(linewidth) => update("linewidth", linewidth)}
+                        min={LINEWIDTH.min}
+                        max={LINEWIDTH.max}
+                        step={0.1}
+                        format={(value) => value.toFixed(1)}
+                    />
+                )}
                 <MySlider
                     title="rotation"
                     value={params.rotation}
@@ -143,7 +226,12 @@ export default function Panel({ params, update, merge }: PanelProps) {
             </Section>
 
             <Section value="output" title="output">
-                <Resolution size={params.size} setSize={(size) => update("size", size)} />
+                <Resolution
+                    size={params.size}
+                    setSize={(size) => update("size", size)}
+                    aspect={params.aspect}
+                    setAspect={(aspect) => update("aspect", aspect)}
+                />
             </Section>
         </Accordion>
     );

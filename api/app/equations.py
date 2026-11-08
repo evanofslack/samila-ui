@@ -4,11 +4,17 @@ Every function scales one term by r = random.uniform(-1, 1), drawn per point fro
 seeded generator, which is what turns a smooth surface into a cloud of points.
 """
 
+import ast
+import inspect
 import math
 import random
+import re
+import textwrap
 from collections.abc import Callable
 from dataclasses import dataclass
 from itertools import combinations
+
+from samila.functions import random_equation_gen
 
 
 def f1(x, y):
@@ -89,11 +95,22 @@ def f19(x, y):
     return random.uniform(-1, 1) * y * math.cos(x) ** 3 + x * math.sin(x * y)
 
 
+def _expr(fn: Callable[[float, float], float]) -> str:
+    """The function's formula as a Python expression in x and y, as samila configs store it."""
+    body = ast.parse(textwrap.dedent(inspect.getsource(fn))).body[0].body[0]
+    assert isinstance(body, (ast.Assign, ast.Return)) and body.value is not None
+    return ast.unparse(body.value)
+
+
 @dataclass(frozen=True)
 class Equation:
     fn: Callable[[float, float], float]
     # the formula for people, with the random coefficient written as r
     display: str
+
+    @property
+    def expr(self) -> str:
+        return _expr(self.fn)
 
 
 EQUATIONS: list[Equation] = [
@@ -133,3 +150,37 @@ def pair_index(f1: int, f2: int) -> int | None:
         return PAIRS.index((f1, f2))
     except ValueError:
         return None
+
+
+def random_equations(fseed: int) -> tuple[str, str]:
+    """The two equations samila generates for a function seed, as Python expressions.
+
+    Mirrors GenerativeImage(func_seed=fseed), which seeds `random` and then writes
+    function 1 and function 2 in that order.
+    """
+    # random_equation_gen draws from the global generator, so put its state back after
+    state = random.getstate()
+    try:
+        random.seed(fseed)
+        return random_equation_gen(), random_equation_gen()
+    finally:
+        random.setstate(state)
+
+
+_PRETTY = [
+    (re.compile(r"random\.\w+\([^)]*\)"), "r"),
+    (re.compile(r"math\."), ""),
+    (re.compile(r"\*\*2"), "²"),
+    (re.compile(r"\*\*3"), "³"),
+    (re.compile(r"\((\w[²³])\)"), r"\1"),
+    (re.compile(r"\*"), "·"),
+    (re.compile(r"(?<=[\w)²³])([+/-])(?=[\w(])"), r" \1 "),
+    (re.compile(r"-"), "−"),
+]
+
+
+def pretty(expr: str) -> str:
+    """A generated expression in the same style as the built-in equations' display."""
+    for pattern, repl in _PRETTY:
+        expr = pattern.sub(repl, expr)
+    return expr

@@ -1,23 +1,13 @@
-import { useState } from "react";
-import Image from "next/image";
-import { ActionIcon, Modal } from "@mantine/core";
-import { useHotkeys } from "@mantine/hooks";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { GALLERY, GalleryEntry } from "../lib/gallery";
+import { equationsLabel } from "../lib/variations";
 
-const IMAGES = Array.from({ length: 18 }, (_, i) => `/images/samila${i}.webp`);
+type GalleryProps = {
+    // opens the image in the editor with its settings
+    onPick: (entry: GalleryEntry) => void;
+};
 
-export default function Gallery() {
-    // the image open in the lightbox
-    const [open, setOpen] = useState<number | null>(null);
-
-    const step = (delta: number) =>
-        setOpen((i) => (i === null ? i : (i + delta + IMAGES.length) % IMAGES.length));
-
-    useHotkeys([
-        ["ArrowLeft", () => step(-1)],
-        ["ArrowRight", () => step(1)],
-    ]);
-
+// 24 images, so every row is full at two, three and four across
+export default function Gallery({ onPick }: GalleryProps) {
     return (
         <section
             id="gallery"
@@ -25,73 +15,38 @@ export default function Gallery() {
             className="mx-auto max-w-7xl scroll-mt-16 px-4 pt-24 sm:px-6"
         >
             <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Gallery</h2>
-            <p className="mt-2 text-muted">A few favourites made with samila.</p>
+            <p className="mt-2 text-muted">Pick one to open it in the editor.</p>
             <div className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
-                {IMAGES.map((src, i) => (
+                {GALLERY.map((entry) => (
                     <button
-                        key={src}
+                        key={entry.src}
                         type="button"
-                        onClick={() => setOpen(i)}
-                        aria-label={`open gallery image ${i + 1}`}
-                        className="group overflow-hidden rounded-sm"
+                        onClick={() => onPick(entry)}
+                        aria-label={`open ${equationsLabel(entry.params).join(" ")}, seed ${entry.params.seed} in the editor`}
+                        className="group relative block overflow-hidden rounded-sm"
                     >
-                        <Image
-                            src={src}
+                        <img
+                            src={entry.small}
                             alt=""
-                            width={400}
-                            height={400}
+                            width={480}
+                            height={480}
                             loading="lazy"
-                            className="h-auto w-full transition-transform duration-300 group-hover:scale-[1.02] group-active:brightness-90"
+                            className="block aspect-square h-auto w-full object-cover transition-transform duration-300 group-hover:scale-[1.02] group-active:brightness-90"
+                            style={
+                                entry.params.bg === "transparent"
+                                    ? {
+                                          background:
+                                              "repeating-conic-gradient(var(--sam-line) 0 25%, transparent 0 50%) 0 0 / 16px 16px",
+                                      }
+                                    : undefined
+                            }
                         />
+                        <span className="pointer-events-none absolute bottom-2 left-2 rounded-full bg-black/55 px-2 py-0.5 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                            open in editor
+                        </span>
                     </button>
                 ))}
             </div>
-
-            <Modal
-                opened={open !== null}
-                onClose={() => setOpen(null)}
-                size="min(90vw, calc(100svh - 120px))"
-                centered
-                padding={0}
-                withCloseButton={false}
-                classNames={{ content: "overflow-hidden bg-transparent shadow-none" }}
-                overlayProps={{ backgroundOpacity: 0.8, blur: 4 }}
-            >
-                {open !== null && (
-                    <div className="relative">
-                        <Image
-                            src={IMAGES[open]}
-                            alt={`Samila gallery image ${open + 1}`}
-                            width={800}
-                            height={800}
-                            className="h-auto w-full rounded-sm"
-                        />
-                        <ActionIcon
-                            variant="default"
-                            radius="xl"
-                            size="lg"
-                            aria-label="previous image"
-                            onClick={() => step(-1)}
-                            className="absolute top-1/2 left-2 -translate-y-1/2 opacity-80 hover:opacity-100"
-                        >
-                            <FiChevronLeft />
-                        </ActionIcon>
-                        <ActionIcon
-                            variant="default"
-                            radius="xl"
-                            size="lg"
-                            aria-label="next image"
-                            onClick={() => step(1)}
-                            className="absolute top-1/2 right-2 -translate-y-1/2 opacity-80 hover:opacity-100"
-                        >
-                            <FiChevronRight />
-                        </ActionIcon>
-                        <p className="absolute right-3 bottom-2 rounded-full bg-black/50 px-2 font-mono text-xs text-white">
-                            {open + 1} / {IMAGES.length}
-                        </p>
-                    </div>
-                )}
-            </Modal>
         </section>
     );
 }

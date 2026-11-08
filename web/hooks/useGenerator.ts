@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { notifications } from "@mantine/notifications";
 import { GeneratedImage, GeneratorParams } from "../interfaces";
-import { ApiError, apiError, autoSize, NETWORK_ERROR, paramsQuery } from "../lib/api";
+import { ApiError, apiError, autoSize, NETWORK_ERROR, renderQuery } from "../lib/api";
 
 // renders kept for going back; each holds its PNG in memory as an object URL
 const HISTORY = 12;
@@ -26,7 +26,9 @@ export default function useGenerator() {
     useEffect(() => {
         return () => {
             controllerRef.current?.abort();
-            historyRef.current.forEach((entry) => URL.revokeObjectURL(entry.url));
+            historyRef.current
+                .filter((entry) => entry.url.startsWith("blob:"))
+                .forEach((entry) => URL.revokeObjectURL(entry.url));
             historyRef.current = [];
         };
     }, []);
@@ -51,7 +53,9 @@ export default function useGenerator() {
 
     const remember = useCallback((entry: GeneratedImage) => {
         const next = [entry, ...historyRef.current];
-        next.slice(HISTORY).forEach((old) => URL.revokeObjectURL(old.url));
+        next.slice(HISTORY)
+            .filter((old) => old.url.startsWith("blob:"))
+            .forEach((old) => URL.revokeObjectURL(old.url));
         historyRef.current = next.slice(0, HISTORY);
         setHistory(historyRef.current);
         setImage(entry);
@@ -67,8 +71,7 @@ export default function useGenerator() {
 
             try {
                 const size = params.size ?? autoSize();
-                const query = paramsQuery(params);
-                query.set("size", String(size));
+                const query = renderQuery(params, size);
                 const resp = await fetch(`/api/image?${query}`, {
                     signal: controller.signal,
                 });
@@ -84,10 +87,13 @@ export default function useGenerator() {
                     url: URL.createObjectURL(blob),
                     params: {
                         ...params,
-                        // X-Eq is only sent for a numbered variation
-                        eq: headerInt(resp, "X-Eq"),
-                        f1: headerInt(resp, "X-F1") ?? params.f1,
-                        f2: headerInt(resp, "X-F2") ?? params.f2,
+                        // random equations leave the variation as it was, for switching back
+                        ...(params.fseed === null && {
+                            // X-Eq is only sent for a numbered variation
+                            eq: headerInt(resp, "X-Eq"),
+                            f1: headerInt(resp, "X-F1") ?? params.f1,
+                            f2: headerInt(resp, "X-F2") ?? params.f2,
+                        }),
                         seed: headerInt(resp, "X-Seed") ?? params.seed ?? 0,
                     },
                     size,
@@ -114,11 +120,23 @@ export default function useGenerator() {
         setLoading(false);
     }, []);
 
+    // show a pre-rendered image as if just rendered, so it joins the history
+    const show = useCallback(
+        (entry: GeneratedImage) => {
+            controllerRef.current?.abort();
+            controllerRef.current = null;
+            setLoading(false);
+            setError(null);
+            remember(entry);
+        },
+        [remember],
+    );
+
     // show an earlier render again, without asking the server
     const restore = useCallback((entry: GeneratedImage) => {
         setImage(entry);
         setError(null);
     }, []);
 
-    return { image, history, loading, elapsed, error, generate, cancel, restore };
+    return { image, history, loading, elapsed, error, generate, cancel, restore, show };
 }

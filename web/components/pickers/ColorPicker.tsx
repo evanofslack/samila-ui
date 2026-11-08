@@ -1,7 +1,8 @@
-import { ActionIcon, SegmentedControl, Tooltip } from "@mantine/core";
-import { FiRepeat } from "react-icons/fi";
+import { useEffect, useRef, useState } from "react";
+import { ActionIcon, Button, Chip, SegmentedControl, Select, Tooltip } from "@mantine/core";
+import { FiPlus, FiRepeat, FiX } from "react-icons/fi";
 import { GeneratorParams } from "../../interfaces";
-import { CMAPS } from "../../lib/api";
+import { CMAPS, complementHex, isGradient, isHex, resolvedColors } from "../../lib/api";
 import { PALETTES } from "../../lib/presets";
 import ColorInput from "../ColorInput";
 import { INFO, Label } from "../Info";
@@ -20,15 +21,136 @@ const CMAP_STOPS: Record<string, string[]> = {
     ocean: ["#008000", "#004040", "#000080", "#5c9dff", "#ffffff"],
 };
 
-type Colors = Pick<GeneratorParams, "color" | "bg" | "cmap">;
+type Colors = Pick<GeneratorParams, "color" | "bg" | "cmap" | "colors">;
 
 type ColorProps = {
     value: Colors;
     onChange: (value: Partial<Colors>) => void;
 };
 
+const CUSTOM_DEFAULT = ["#ff0066", "#ffcc00", "#00ccff"];
+const MAX_STOPS = 4;
+
+// every colormap the API takes; fetched once, the curated ones until then
+let allCmaps: string[] | null = null;
+
+function useAllColormaps(): string[] {
+    const [names, setNames] = useState<string[]>(allCmaps ?? CMAPS);
+    useEffect(() => {
+        if (allCmaps) {
+            return;
+        }
+        fetch("/api/colormaps")
+            .then((resp) => (resp.ok ? resp.json() : null))
+            .then((body) => {
+                if (body?.all) {
+                    allCmaps = body.all as string[];
+                    setNames(allCmaps);
+                }
+            })
+            .catch(() => {});
+    }, []);
+    return names;
+}
+
+function GradientTile({
+    label,
+    stops,
+    selected,
+    onClick,
+}: {
+    label: string;
+    stops: string[];
+    selected: boolean;
+    onClick: () => void;
+}) {
+    return (
+        <button
+            type="button"
+            aria-pressed={selected}
+            onClick={onClick}
+            className={`flex items-center gap-2 rounded-sm border p-1.5 text-left text-xs transition-colors ${
+                selected
+                    ? "border-ink bg-ink/5 text-ink"
+                    : "border-line text-muted hover:border-line-strong hover:text-ink"
+            }`}
+        >
+            <span
+                className="h-3 w-10 shrink-0 rounded-xs"
+                style={{ background: `linear-gradient(to right, ${stops.join(", ")})` }}
+            />
+            {label}
+        </button>
+    );
+}
+
+function CustomStops({
+    colors,
+    onChange,
+}: {
+    colors: string[];
+    onChange: (colors: string[]) => void;
+}) {
+    return (
+        <div className="flex flex-col gap-2">
+            {colors.map((color, i) => (
+                <div key={i} className="flex items-end gap-1.5">
+                    <ColorInput
+                        label={i === 0 ? "gradient colors" : ""}
+                        value={color}
+                        onChange={(c) => onChange(colors.map((old, j) => (j === i ? c : old)))}
+                    />
+                    <ActionIcon
+                        variant="subtle"
+                        color="gray"
+                        size="input-sm"
+                        aria-label={`remove color ${i + 1}`}
+                        disabled={colors.length <= 2}
+                        onClick={() => onChange(colors.filter((_, j) => j !== i))}
+                    >
+                        <FiX size="0.9rem" />
+                    </ActionIcon>
+                </div>
+            ))}
+            {colors.length < MAX_STOPS && (
+                <Button
+                    variant="subtle"
+                    color="gray"
+                    size="xs"
+                    leftSection={<FiPlus />}
+                    className="self-start"
+                    onClick={() => onChange([...colors, colors[colors.length - 1]])}
+                >
+                    add color
+                </Button>
+            )}
+        </div>
+    );
+}
+
 export default function ColorPicker({ value, onChange }: ColorProps) {
-    const gradient = value.cmap !== null;
+    const gradient = isGradient(value);
+    const allNames = useAllColormaps();
+    // the last real background, for when transparent is turned off again
+    const lastBg = useRef(isHex(value.bg) ? value.bg : "#ffffff");
+    if (isHex(value.bg)) {
+        lastBg.current = value.bg;
+    }
+    const resolved = resolvedColors(value);
+    const transparent = value.bg === "transparent";
+    const complement = value.color === "complement";
+
+    const setMode = (mode: string) =>
+        onChange(
+            mode === "gradient"
+                ? {
+                      cmap: "viridis",
+                      colors: null,
+                      // a gradient has no single colour for the background to complement
+                      bg: value.bg === "complement" ? resolved.bg : value.bg,
+                  }
+                : { cmap: null, colors: null },
+        );
 
     return (
         <div className="flex flex-col gap-4">
@@ -36,7 +158,7 @@ export default function ColorPicker({ value, onChange }: ColorProps) {
                 fullWidth
                 size="xs"
                 value={gradient ? "gradient" : "solid"}
-                onChange={(mode) => onChange({ cmap: mode === "gradient" ? "viridis" : null })}
+                onChange={setMode}
                 data={["solid", "gradient"]}
                 aria-label="colour mode"
             />
@@ -54,6 +176,7 @@ export default function ColorPicker({ value, onChange }: ColorProps) {
                             variant="default"
                             size="input-sm"
                             aria-label="swap line and background"
+                            disabled={!isHex(value.color) || !isHex(value.bg)}
                             onClick={() => onChange({ color: value.bg, bg: value.color })}
                         >
                             <FiRepeat size="0.9rem" />
@@ -66,34 +189,78 @@ export default function ColorPicker({ value, onChange }: ColorProps) {
                     onChange={(bg) => onChange({ bg })}
                 />
             </div>
+            <div className="flex flex-wrap gap-1.5">
+                {!gradient && (
+                    <Chip
+                        size="xs"
+                        checked={complement}
+                        disabled={!isHex(value.bg)}
+                        onChange={(on) => onChange({ color: on ? "complement" : resolved.color })}
+                    >
+                        complement line
+                    </Chip>
+                )}
+                <Chip
+                    size="xs"
+                    checked={transparent}
+                    onChange={(on) =>
+                        onChange({
+                            bg: on ? "transparent" : lastBg.current,
+                            // a complement needs a background colour to work from
+                            ...(on && complement && { color: complementHex(lastBg.current) }),
+                        })
+                    }
+                >
+                    transparent background
+                </Chip>
+            </div>
             {gradient ? (
-                <div>
-                    <div className="mb-1 text-sm font-medium">
-                        <Label text="colormap" info={INFO.colormap} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-1.5" role="group" aria-label="colormap">
-                        {CMAPS.map((cmap) => (
-                            <button
-                                key={cmap}
-                                type="button"
-                                aria-pressed={value.cmap === cmap}
-                                onClick={() => onChange({ cmap })}
-                                className={`flex items-center gap-2 rounded-sm border p-1.5 text-left text-xs transition-colors ${
-                                    value.cmap === cmap
-                                        ? "border-ink bg-ink/5 text-ink"
-                                        : "border-line text-muted hover:border-line-strong hover:text-ink"
-                                }`}
-                            >
-                                <span
-                                    className="h-3 w-10 shrink-0 rounded-xs"
-                                    style={{
-                                        background: `linear-gradient(to right, ${CMAP_STOPS[cmap].join(", ")})`,
-                                    }}
+                <div className="flex flex-col gap-3">
+                    <div>
+                        <div className="mb-1 text-sm font-medium">
+                            <Label text="colormap" info={INFO.colormap} />
+                        </div>
+                        <div
+                            className="grid grid-cols-2 gap-1.5"
+                            role="group"
+                            aria-label="colormap"
+                        >
+                            {CMAPS.map((cmap) => (
+                                <GradientTile
+                                    key={cmap}
+                                    label={cmap}
+                                    stops={CMAP_STOPS[cmap]}
+                                    selected={value.cmap === cmap}
+                                    onClick={() => onChange({ cmap, colors: null })}
                                 />
-                                {cmap}
-                            </button>
-                        ))}
+                            ))}
+                            <GradientTile
+                                label="custom"
+                                stops={value.colors ?? CUSTOM_DEFAULT}
+                                selected={value.colors !== null}
+                                onClick={() =>
+                                    onChange({ cmap: null, colors: value.colors ?? CUSTOM_DEFAULT })
+                                }
+                            />
+                        </div>
                     </div>
+                    {value.colors !== null ? (
+                        <CustomStops
+                            colors={value.colors}
+                            onChange={(colors) => onChange({ colors })}
+                        />
+                    ) : (
+                        <Select
+                            label="all colormaps"
+                            size="xs"
+                            searchable
+                            placeholder="search matplotlib colormaps"
+                            data={allNames}
+                            value={value.cmap && !CMAPS.includes(value.cmap) ? value.cmap : null}
+                            onChange={(cmap) => cmap && onChange({ cmap, colors: null })}
+                            limit={60}
+                        />
+                    )}
                 </div>
             ) : (
                 <div>

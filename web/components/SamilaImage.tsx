@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { ActionIcon, Loader, Tooltip } from "@mantine/core";
-import { FiCopy, FiDownload, FiLink, FiTerminal } from "react-icons/fi";
+import { FiCopy, FiDownload, FiFileText, FiLink, FiTerminal } from "react-icons/fi";
 import { GeneratedImage } from "../interfaces";
-import { ApiError, autoSize, curlCommand, paramsQuery } from "../lib/api";
+import { ApiError, autoSize, curlCommand, paramsQuery, renderQuery } from "../lib/api";
 import { DEFAULT_IMAGE, DEFAULT_PARAMS } from "../lib/presets";
-import { variationLabel } from "../lib/variations";
+import { equationsLabel } from "../lib/variations";
 import CopyIcon from "./CopyIcon";
 
 type ImageProps = {
@@ -14,6 +14,10 @@ type ImageProps = {
     elapsed: number;
     error: ApiError | null;
     onCancel: () => void;
+    // the controls no longer match the image
+    stale: boolean;
+    onApply: () => void;
+    onUndo: () => void;
 };
 
 function download(href: string, name: string) {
@@ -29,24 +33,49 @@ function download(href: string, name: string) {
 // so its PNG comes from the API at the chosen size
 function downloadImage(image: GeneratedImage | null) {
     if (image) {
-        const name = variationLabel(image.params).replace(" × ", "-");
+        const name = equationsLabel(image.params).join("-").replace(" × ", "-");
         download(image.url, `samila-${name}-${image.params.seed}-${image.size}.png`);
         return;
     }
     const size = DEFAULT_PARAMS.size ?? autoSize();
-    const query = paramsQuery(DEFAULT_PARAMS);
-    query.set("size", String(size));
     download(
-        `/api/image?${query}`,
+        `/api/image?${renderQuery(DEFAULT_PARAMS, size)}`,
         `samila-${DEFAULT_PARAMS.eq}-${DEFAULT_PARAMS.seed}-${size}.png`,
     );
 }
 
-export default function SamilaImage({ image, loading, elapsed, error, onCancel }: ImageProps) {
+export default function SamilaImage({
+    image,
+    loading,
+    elapsed,
+    error,
+    onCancel,
+    stale,
+    onApply,
+    onUndo,
+}: ImageProps) {
+    // an out of date image fades, so a change that hasn't rendered yet doesn't look ignored
+    const faded = loading ? "opacity-75" : stale ? "opacity-40" : "";
     const shown = image?.params ?? DEFAULT_PARAMS;
+    const [kind, label] = equationsLabel(shown);
+    // the frame takes the image's shape, and never grows taller than the window below the header
+    const aspect = shown.aspect;
     // the page's address, known only in the browser
     const [origin, setOrigin] = useState("");
     const [page, setPage] = useState("");
+
+    // the samila config for the image on screen, fetched ahead so copying it is instant
+    const size = image?.size ?? 1000;
+    const [config, setConfig] = useState("");
+    useEffect(() => {
+        const controller = new AbortController();
+        setConfig("");
+        fetch(`/api/config?${renderQuery(shown, size)}`, { signal: controller.signal })
+            .then((response) => (response.ok ? response.json() : Promise.reject()))
+            .then((json) => setConfig(JSON.stringify(json, null, 2)))
+            .catch(() => {});
+        return () => controller.abort();
+    }, [shown, size]);
 
     useEffect(() => {
         setOrigin(window.location.origin);
@@ -54,17 +83,57 @@ export default function SamilaImage({ image, loading, elapsed, error, onCancel }
     }, []);
 
     return (
-        // on wide screens the square never grows taller than the window below the header
-        <div className="mx-auto flex w-full max-w-[min(100%,calc(100svh-240px))] min-w-0 flex-col">
-            <div className="relative aspect-square w-full overflow-hidden rounded-md border border-line bg-surface">
+        <div
+            className="mx-auto flex w-full min-w-0 flex-col"
+            style={{ maxWidth: `min(100%, calc((100svh - 240px) * ${aspect}))` }}
+        >
+            <div
+                className="relative w-full overflow-hidden rounded-md border border-line bg-surface"
+                style={{
+                    aspectRatio: aspect,
+                    // a checkerboard shows through a transparent background
+                    ...(shown.bg === "transparent" && {
+                        background:
+                            "repeating-conic-gradient(var(--sam-line) 0 25%, transparent 0 50%) 0 0 / 16px 16px",
+                    }),
+                }}
+            >
                 <Image
                     src={image?.url ?? DEFAULT_IMAGE}
-                    alt={`Samila generative art, variation ${variationLabel(shown)}, seed ${shown.seed}`}
+                    alt={`Samila generative art, ${kind} ${label}, seed ${shown.seed}`}
                     width={1400}
-                    height={1400}
-                    className={`h-auto w-full transition-opacity duration-300 ${loading ? "opacity-75" : ""}`}
+                    height={Math.round(1400 / aspect)}
+                    className={`size-full object-contain transition-opacity duration-300 ${faded}`}
                     priority
                 />
+                {stale && !loading && (
+                    <>
+                        {/* clicking the faded image applies the changes too */}
+                        <button
+                            type="button"
+                            aria-label="apply changes"
+                            onClick={onApply}
+                            className="absolute inset-0 cursor-pointer"
+                        />
+                        <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full border border-line bg-surface/95 py-1 pr-1 pl-3 text-xs whitespace-nowrap shadow-sm backdrop-blur transition-all starting:translate-y-1 starting:opacity-0">
+                            <span>settings changed</span>
+                            <button
+                                type="button"
+                                onClick={onUndo}
+                                className="ml-1 rounded-full px-2 py-0.5 text-muted transition-colors hover:bg-ink/10 hover:text-ink"
+                            >
+                                undo
+                            </button>
+                            <button
+                                type="button"
+                                onClick={onApply}
+                                className="rounded-full bg-ink px-2.5 py-0.5 font-medium text-bg transition-opacity hover:opacity-85"
+                            >
+                                apply
+                            </button>
+                        </div>
+                    </>
+                )}
                 {loading && (
                     <>
                         <div className="absolute inset-x-0 top-0 h-0.5 overflow-hidden bg-ink/10">
@@ -90,8 +159,7 @@ export default function SamilaImage({ image, loading, elapsed, error, onCancel }
             <div className="flex min-h-10 flex-row flex-wrap items-center justify-between gap-x-2 pt-1">
                 <div className="flex flex-row items-center gap-1 text-sm text-muted">
                     <span>
-                        variation{" "}
-                        <span className="font-mono text-ink">{variationLabel(shown)}</span>
+                        {kind} <span className="font-mono text-ink">{label}</span>
                         {" · "}
                         seed <span className="font-mono text-ink">{shown.seed}</span>
                     </span>
@@ -105,9 +173,14 @@ export default function SamilaImage({ image, loading, elapsed, error, onCancel }
                 </div>
                 <div className="flex flex-row items-center">
                     <CopyIcon
-                        value={curlCommand(origin, shown, image?.size ?? 1000)}
+                        value={curlCommand(origin, shown, size)}
                         label="copy API call"
                         icon={<FiTerminal size="1.05rem" />}
+                    />
+                    <CopyIcon
+                        value={config}
+                        label="copy samila config"
+                        icon={<FiFileText size="1.05rem" />}
                     />
                     <CopyIcon
                         value={`${page}?${paramsQuery(shown)}`}

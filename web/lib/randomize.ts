@@ -1,10 +1,10 @@
 import { GeneratorParams } from "../interfaces";
 import { CMAPS, MARKERS, MAX_EQ, MAX_SEED, MODES, PROJECTIONS } from "./api";
-import { PALETTES, SHAPES } from "./presets";
+import { DEFAULT_PARAMS, PALETTES, SHAPES } from "./presets";
 import { pick, pickWeighted, randomFloat, randomInt } from "./random";
 import { fromEq } from "./variations";
 
-type Params = Omit<GeneratorParams, "size">;
+type Params = Omit<GeneratorParams, "size" | "aspect">;
 
 // hue 0..360, saturation and lightness 0..100, as #rrggbb
 function hsl(h: number, s: number, l: number): string {
@@ -41,17 +41,38 @@ export function randomSeed(): number {
     return randomInt(MAX_SEED + 1);
 }
 
-// mostly the curated palettes, sometimes a generated pair
-export function randomColors(): Pick<Params, "color" | "bg" | "cmap"> {
+// mostly the curated palettes, sometimes a generated pair; gradient picks a colormap instead
+export function randomColors(
+    gradient = Math.random() < 0.1,
+): Pick<Params, "color" | "bg" | "cmap" | "colors"> {
     const { color, bg } = Math.random() < 0.75 ? pick(PALETTES) : generatedColors();
-    return { color, bg, cmap: Math.random() < 0.1 ? pick(CMAPS) : null };
+    return { color, bg, cmap: gradient ? pick(CMAPS) : null, colors: null };
+}
+
+const DEFAULT_GRID = {
+    start: DEFAULT_PARAMS.start,
+    stop: DEFAULT_PARAMS.stop,
+    step: DEFAULT_PARAMS.step,
+};
+
+// usually samila's grid; sometimes a wider or narrower one at the same density
+function randomGrid(): Pick<Params, "start" | "stop" | "step"> {
+    if (Math.random() < 0.85) {
+        return DEFAULT_GRID;
+    }
+    // a multiple of π, as the grid range slider shows it
+    const range = Number((Math.round(randomFloat(0.5, 1.6) / 0.05) * 0.05 * Math.PI).toFixed(4));
+    return { start: -range, stop: range, step: Number(((2 * range) / 628).toFixed(5)) };
 }
 
 // the variation and how it's plotted; mostly from the curated shapes
-export function randomShape(): Pick<Params, "eq" | "f1" | "f2" | "mode" | "proj"> {
-    if (Math.random() < 0.6) {
+export function randomShape(): Pick<
+    Params,
+    "eq" | "f1" | "f2" | "fseed" | "mode" | "proj" | "start" | "stop" | "step"
+> {
+    if (Math.random() < 0.55) {
         const { eq, mode, proj } = pick(SHAPES);
-        return { ...fromEq(eq), mode, proj };
+        return { ...fromEq(eq), fseed: null, mode, proj, ...DEFAULT_GRID };
     }
     const otherModes = MODES.map((m) => m.value).filter(
         (m) => m !== "f1_vs_f2" && m !== "f2_vs_f1",
@@ -59,6 +80,8 @@ export function randomShape(): Pick<Params, "eq" | "f1" | "f2" | "mode" | "proj"
     const otherProjs = PROJECTIONS.filter((p) => p !== "rectilinear" && p !== "polar");
     return {
         ...fromEq(randomInt(MAX_EQ + 1)),
+        // now and then, equations samila writes itself
+        fseed: Math.random() < 0.3 ? randomSeed() : null,
         mode: pickWeighted(
             [
                 ["f1_vs_f2", 0.45],
@@ -73,10 +96,14 @@ export function randomShape(): Pick<Params, "eq" | "f1" | "f2" | "mode" | "proj"
             ],
             otherProjs,
         ),
+        ...randomGrid(),
     };
 }
 
-export function randomPoints(): Pick<Params, "marker" | "spot" | "alpha" | "rotation"> {
+export function randomPoints(): Pick<
+    Params,
+    "marker" | "spot" | "alpha" | "linewidth" | "rotation"
+> {
     const otherMarkers = MARKERS.map((m) => m.value).filter((m) => m !== "point" && m !== "circle");
     const marker = pickWeighted(
         [
@@ -91,6 +118,11 @@ export function randomPoints(): Pick<Params, "marker" | "spot" | "alpha" | "rota
         marker,
         spot: Number(spot.toPrecision(2)),
         alpha: Number(randomFloat(0.06, 0.22).toFixed(2)),
+        // outlined markers sometimes get a finer or bolder line
+        linewidth:
+            marker !== "point" && Math.random() < 0.3
+                ? Number(randomFloat(0.3, 3).toFixed(1))
+                : DEFAULT_PARAMS.linewidth,
         rotation: Math.random() < 0.8 ? 0 : randomInt(24) * 15,
     };
 }
@@ -99,7 +131,12 @@ export function randomPoints(): Pick<Params, "marker" | "spot" | "alpha" | "rota
 export function surpriseParams(): Params {
     if (Math.random() < 0.7) {
         const shape = pick(SHAPES);
-        return { ...shape, ...fromEq(shape.eq), ...randomColors(), cmap: null };
+        return {
+            ...DEFAULT_PARAMS,
+            ...shape,
+            ...fromEq(shape.eq),
+            ...randomColors(false),
+        };
     }
     return { ...randomShape(), ...randomPoints(), ...randomColors(), seed: randomSeed() };
 }
