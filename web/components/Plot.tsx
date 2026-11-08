@@ -267,7 +267,7 @@ export default function Plot({ onShown, picked }: PlotProps) {
                 />
                 <Panel params={params} update={update} merge={merge} />
                 {dirty && !topVisible && (
-                    <div className="sticky bottom-4 -mx-2 hidden rounded-md border border-line bg-surface/95 p-2 shadow-md backdrop-blur transition-all starting:translate-y-2 starting:opacity-0 lg:block">
+                    <div className="sticky bottom-4 z-20 -mx-2 hidden rounded-md border border-line bg-surface p-2 shadow-md backdrop-blur transition-all starting:translate-y-2 starting:opacity-0 lg:block">
                         <ApplyBar loading={loading} onApply={onApply} onUndo={onUndo} />
                     </div>
                 )}
