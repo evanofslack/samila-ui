@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { ActionIcon, Loader, Tooltip } from "@mantine/core";
-import { FiCopy, FiDownload, FiLink, FiTerminal } from "react-icons/fi";
+import { FiCopy, FiDownload, FiFileText, FiLink, FiTerminal } from "react-icons/fi";
 import { GeneratedImage } from "../interfaces";
 import { ApiError, autoSize, curlCommand, paramsQuery, renderQuery } from "../lib/api";
 import { DEFAULT_IMAGE, DEFAULT_PARAMS } from "../lib/presets";
@@ -63,6 +63,19 @@ export default function SamilaImage({
     // the page's address, known only in the browser
     const [origin, setOrigin] = useState("");
     const [page, setPage] = useState("");
+
+    // the samila config for the image on screen, fetched ahead so copying it is instant
+    const size = image?.size ?? 1000;
+    const [config, setConfig] = useState("");
+    useEffect(() => {
+        const controller = new AbortController();
+        setConfig("");
+        fetch(`/api/config?${renderQuery(shown, size)}`, { signal: controller.signal })
+            .then((response) => (response.ok ? response.json() : Promise.reject()))
+            .then((json) => setConfig(JSON.stringify(json, null, 2)))
+            .catch(() => {});
+        return () => controller.abort();
+    }, [shown, size]);
 
     useEffect(() => {
         setOrigin(window.location.origin);
@@ -160,9 +173,14 @@ export default function SamilaImage({
                 </div>
                 <div className="flex flex-row items-center">
                     <CopyIcon
-                        value={curlCommand(origin, shown, image?.size ?? 1000)}
+                        value={curlCommand(origin, shown, size)}
                         label="copy API call"
                         icon={<FiTerminal size="1.05rem" />}
+                    />
+                    <CopyIcon
+                        value={config}
+                        label="copy samila config"
+                        icon={<FiFileText size="1.05rem" />}
                     />
                     <CopyIcon
                         value={`${page}?${paramsQuery(shown)}`}
