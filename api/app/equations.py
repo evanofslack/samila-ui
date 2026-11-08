@@ -6,9 +6,12 @@ seeded generator, which is what turns a smooth surface into a cloud of points.
 
 import math
 import random
+import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from itertools import combinations
+
+from samila.functions import random_equation_gen
 
 
 def f1(x, y):
@@ -133,3 +136,37 @@ def pair_index(f1: int, f2: int) -> int | None:
         return PAIRS.index((f1, f2))
     except ValueError:
         return None
+
+
+def random_equations(fseed: int) -> tuple[str, str]:
+    """The two equations samila generates for a function seed, as Python expressions.
+
+    Mirrors GenerativeImage(func_seed=fseed), which seeds `random` and then writes
+    function 1 and function 2 in that order.
+    """
+    # random_equation_gen draws from the global generator, so put its state back after
+    state = random.getstate()
+    try:
+        random.seed(fseed)
+        return random_equation_gen(), random_equation_gen()
+    finally:
+        random.setstate(state)
+
+
+_PRETTY = [
+    (re.compile(r"random\.\w+\([^)]*\)"), "r"),
+    (re.compile(r"math\."), ""),
+    (re.compile(r"\*\*2"), "²"),
+    (re.compile(r"\*\*3"), "³"),
+    (re.compile(r"\((\w[²³])\)"), r"\1"),
+    (re.compile(r"\*"), "·"),
+    (re.compile(r"(?<=[\w)²³])([+/-])(?=[\w(])"), r" \1 "),
+    (re.compile(r"-"), "−"),
+]
+
+
+def pretty(expr: str) -> str:
+    """A generated expression in the same style as the built-in equations' display."""
+    for pattern, repl in _PRETTY:
+        expr = pattern.sub(repl, expr)
+    return expr
